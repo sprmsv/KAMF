@@ -132,3 +132,4 @@ dmypy.json
 refs/
 data/
 .DS_Store
+tex/.out/
