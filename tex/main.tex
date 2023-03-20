@@ -1,0 +1,81 @@
+\documentclass[12pt, a4paper]{article}
+\input{settings}
+
+\title{
+	\rule{\linewidth}{0.5mm}\\
+	\Large \textbf{{A Krylov subspace algorithm for evaluating $\varphi$-functions}}
+	\rule{\linewidth}{0.5mm}\\
+	\normalsize {\textbf{Master Semester Project}}\\
+	\normalsize \today\\[1.5cm]
+}
+
+\author{
+	\begin{tabular}{lll}
+		\textit{Student:} & Sepehr Mousavi\\
+		& \\
+		\textit{Supervisors:} & Daniel Kressner\\
+		\textit{} & Yannis Voet\\
+	\end{tabular}
+}
+
+\lhead{
+	\small\textit{Master Semester Project}\\
+	\small\textit{A Krylov subspace algorithm for evaluating $\varphi$-functions}\\
+}
+% \chead{}
+\rhead{
+	\includegraphics[width=55pt]{img/EPFLlogo.png}\\
+}
+% \rfoot{
+% 		\vspace{5pt}{\fontfamily{phv}\fontsize{5}{5}\selectfont Spring 2023, Sepehr Mousavi{},
+% 		\the\day.\the\month.\the\year, \thepage/\pageref{LastPage}}
+% }
+
+\bibliographystyle{unsrt}
+
+\begin{document}
+
+	\begin{titlepage}
+		\center
+
+		\makeatletter
+		\def\printauthor{{\centering \large \@author}}
+		\makeatother
+
+		\makeatletter
+		\def\printtitle{{\centering \@title\par}}
+		\makeatother
+
+		\textsc{
+			\large École Polytechnique Fédérale de Lausanne\\
+			\large Chair of Numerical Algorithms and High-Performance Computing
+		}\\[1cm]
+		\vspace{3cm}
+		\printtitle
+		\vspace{2cm}
+		\printauthor
+		\vfill
+		\begin{figure}[h]
+			\centering
+			\includegraphics[width = 0.6\textwidth]{img/EPFLlogo.png}
+		\end{figure}
+
+	\end{titlepage}
+
+	\tableofcontents
+	\listoftodos
+	\thispagestyle{plain}
+	\newpage
+
+	\begin{abstract}
+		\input{abstract}
+	\end{abstract}
+
+	\input{body}
+	\newpage
+	\bibliography{ref.bib}
+	\newpage
+	\appendix
+	\input{appendices}
+
+\end{document}

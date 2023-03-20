@@ -1,0 +1,114 @@
+\usepackage[american]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+
+%% Mathematics packages
+\usepackage{amsmath,amsfonts,amssymb, amsthm}
+\usepackage{mdframed}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{corollary}{Corollary}[theorem]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem*{remark}{Remark}
+\usepackage{nccmath}
+\usepackage{physics}
+
+\usepackage{graphicx}
+\usepackage{geometry}
+\geometry{a4paper}
+\usepackage[parfill]{parskip}
+\usepackage{epstopdf}
+\usepackage{color}
+\usepackage[tt]{titlepic}
+\usepackage{fancyhdr}
+\usepackage{enumerate}
+\usepackage{lastpage}
+
+\usepackage[justification=centering, labelfont=bf]{caption}  % Captioning figures and tables
+\usepackage{subcaption}
+\usepackage{makecell}  % Allows linebreak in table cells
+\usepackage{listings}  % Listings
+
+%% Extra packages
+% \usepackage{pdfpages}
+% \usepackage{multicol}
+% \usepackage{comment}
+% \usepackage{xcolor}
+% \usepackage{setspace}
+% \usepackage{needspace}
+% \usepackage{kotex}
+\setlength {\marginparwidth}{2cm}
+\usepackage{todonotes}  % Allows putting todos in the document
+% \usepackage{url}
+% \usepackage{booktabs}
+% \usepackage{tabularx}
+% \usepackage{xcolor}
+% \usepackage{upgreek}
+% \usepackage{textcomp}
+% \usepackage{gensymb}
+% \usepackage{float}
+% \usepackage[export]{adjustbox}
+% \usepackage{helvet}
+% \usepackage{cleveref}
+% \usepackage{pifont}
+
+\usepackage[comma,numbers,sort&compress]{natbib}
+\usepackage[pdfstartview=FitH,
+            breaklinks=true,
+            bookmarksopen=true,
+            bookmarksnumbered=true,
+            colorlinks=true,
+            linkcolor=black,
+            citecolor=black
+            ]{hyperref}
+\newcommand{\rmd}{\textrm{d}}
+\newcommand{\bi}[1]{{\ensuremath{\boldsymbol{#1}}}}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+
+%% Set page style
+\topmargin=-0.45in
+\oddsidemargin=-0.1in
+\textwidth=6.8in
+\textheight=9.2in
+\headheight=40pt
+\pagestyle{fancy}
+\pagenumbering{arabic}
+\setcounter{page}{1}
+\addtolength{\headheight}{\baselineskip}
+\setlength\parindent{0pt}
+\renewcommand{\headrulewidth}{0.5pt}
+\rmfamily
+\mdseries
+
+%% --------------------------------------------------
+
+%% Define custom colors
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+%% Set listing style
+\lstdefinestyle{pythonstyle}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{blue},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false
+    showtabs=false,
+    tabsize=2
+}
+
+%% Set numbering style
+\renewcommand{\theequation}{\arabic{section}.\arabic{equation}}
+\renewcommand{\thetable}{\arabic{section}.\arabic{table}}
+\renewcommand{\thefigure}{\arabic{section}.\arabic{figure}}
