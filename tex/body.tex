@@ -207,6 +207,22 @@ where $e_1$ is the first vector in the standard basis of $\mathbb{R}^n$. Putting
 With this approximation, instead of evaluating the $\varphi$-function for a $n \times n$ matrix,
 we just need to evaluate it for $H_m$ which is much smaller than $A$.
 
+\begin{corollary}
+    \label{cor:univariateerrorestimationpolynomial}
+    For all $\Pi_{m-1} \ni g(z) = \sum_{k=0}^{m-1}{\alpha_k} z^k$, the approximation in \eqref{eq:univariatephifunctionapproximation} is exact;
+    where $\Pi_{m-1}$ is the set of all polynomials of degree up to $m-1$.
+    This can be shown using the definition of $g$ and Lemma \ref{lm:krylovsubspacepowered}:
+    \begin{equation*}
+        \begin{aligned}
+            g(A) v & = \sum_{k=0}^{m-1}{\alpha_k A^k v}
+            = \sum_{k=0}^{m-1}{\alpha_k V_m H_m^k V_m^* v}
+            = V_m \underset{g(H_m)}{\underbrace{\left( \sum_{k=0}^{m-1}{\alpha_k H_m^k } \right)}}
+            \underset{\left\| v \right\|_2 e_1}{\underbrace{V_m^* v}}\\
+            & = \left\| v \right\|_2 V_m g(H_m) e_1.
+        \end{aligned}
+    \end{equation*}
+\end{corollary}
+
 \begin{lemma}
     \label{lem:hhatpowered}
     Let $A \in \mathbb{C}^{n \times n}$, $v \in \mathbb{C}$, $V_m \in \mathbb{C}^{n \times m}$ be an
@@ -286,26 +302,6 @@ Using Lemma \ref{lem:hhatpowered} and \eqref{eq:matrixphifunctionsclosedform}, i
 The method described in this section could be generalized to any function $f$ that is
 analytic on a domain including the eigenvalues of $A$.
 
-\begin{lemma}
-    \label{lm:univariateerrorestimationpolynomial}
-    For all $\Pi_{m-1} \ni g(z) = \sum_{k=0}^{m-1}{\alpha_k} z^k$, the approximation in \eqref{eq:univariatephifunctionapproximation} is exact;
-    where $\Pi_{m-1}$ is the set of all polynomials of degree up to $m-1$.
-\end{lemma}
-
-\begin{proof}
-    Using the definition of $g$ and Lemma \ref{lm:krylovsubspacepowered}, we have
-    \begin{equation*}
-        \begin{aligned}
-            g(A) v & = \sum_{k=0}^{m-1}{\alpha_k A^k v}
-            = \sum_{k=0}^{m-1}{\alpha_k V_m H_m^k V_m^* v}
-            = V_m \underset{g(H_m)}{\underbrace{\left( \sum_{k=0}^{m-1}{\alpha_k H_m^k } \right)}}
-            \underset{\left\| v \right\|_2 e_1}{\underbrace{V_m^* v}}\\
-            & = \left\| v \right\|_2 V_m g(H_m) e_1,
-        \end{aligned}
-    \end{equation*}
-    which shows that the approximation is exact.
-\end{proof}
-
 % NOTE: The result of Theorem 6.5 can be extended to general matrices by replacing [α, β] with the numerical range of A.
 % For details, we refer to the seminal paper [M. Hochbruck and C. Lubich, On Krylov subspace approximations to the matrix
 % exponential operator, SIAM J. Numer. Anal., 34 (1997), pp. 1911–1925].
@@ -322,7 +318,7 @@ analytic on a domain including the eigenvalues of $A$.
 \end{theorem}
 \begin{proof}
     Considering an arbitrary polynomial $g \in \Pi_{m-1}$, we define the error $e = f - g$, we use
-    Lemma \ref{lm:univariateerrorestimationpolynomial}, the triangle inequality, and the orthonormality of the columns of $V_m$ to get
+    Corrolary \ref{cor:univariateerrorestimationpolynomial}, the triangle inequality, and the orthonormality of the columns of $V_m$ to get
     \begin{equation*}
         \begin{aligned}
             \left\| f(A)v - f_m \right\|_2
