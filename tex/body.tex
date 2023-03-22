@@ -167,7 +167,7 @@ reads
 \end{equation}
 
 \begin{lemma}
-    \label{lm:krylovsubspacepowered}
+    \label{lem:krylovsubspacepowered}
     Considering the setting described above, we can write
     \begin{equation}
         A^k v = V_m H_m^k V_m^* v, \quad \forall k \in \{0, 1, \dots, m-1 \}.
@@ -211,7 +211,7 @@ we just need to evaluate it for $H_m$ which is much smaller than $A$.
     \label{cor:univariateerrorestimationpolynomial}
     For all $\Pi_{m-1} \ni g(z) = \sum_{k=0}^{m-1}{\alpha_k} z^k$, the approximation in \eqref{eq:univariatephifunctionapproximation} is exact;
     where $\Pi_{m-1}$ is the set of all polynomials of degree up to $m-1$.
-    This can be shown using the definition of $g$ and Lemma \ref{lm:krylovsubspacepowered}:
+    This can be shown using the definition of $g$ and Lemma \ref{lem:krylovsubspacepowered}:
     \begin{equation*}
         \begin{aligned}
             g(A) v & = \sum_{k=0}^{m-1}{\alpha_k A^k v}
@@ -306,7 +306,7 @@ analytic on a domain including the eigenvalues of $A$.
 % For details, we refer to the seminal paper [M. Hochbruck and C. Lubich, On Krylov subspace approximations to the matrix
 % exponential operator, SIAM J. Numer. Anal., 34 (1997), pp. 1911–1925].
 \begin{theorem}
-    \label{th:univariateerrorestimationgeneral}
+    \label{the:univariateerrorestimationgeneral}
     Let $A \in \mathbb{C}^{n \times n}$ be a Hermitian matrix. For a general scalar function $f: \mathbb{C} \to \mathbb{C}$ that is
     analytic on a domain $\Omega \subset \mathbb{C}$ containing the spectrum of $A$, $\Lambda(A) \subset \mathbb{R}$, the
     error of the approximation $f_m := \left\| v \right\|_{2} V_m f(H_m) e_1$ is bounded by the maximum error of the
@@ -335,7 +335,7 @@ analytic on a domain including the eigenvalues of $A$.
     In the last step, we used that $\Lambda(H_m) \subset \Lambda(A) \subset \Omega$ holds due to eigenvalue interlacing.
 \end{proof}
 
-To specialize \autoref{th:univariateerrorestimationgeneral} to $\varphi$-functions, we follow two approaches. The
+To specialize \autoref{the:univariateerrorestimationgeneral} to $\varphi$-functions, we follow two approaches. The
 first one is using truncated Taylor series to get an approximation for the left-hand-side of
 \eqref{eq:univariateerrorestimationgeneral}, which results in the following theorem.
 
@@ -343,7 +343,7 @@ first one is using truncated Taylor series to get an approximation for the left-
 % NOTE: Much better estimates can be obtained, e.g., by Chebyshev expansion:
 % H. Tal-Ezer, Polynomial approximation of functions of matrices and applications, J. Sci. Comput. 4 (1989), pp. 25–60
 \begin{lemma}
-    \label{th:univariateerrorestimationphitaylor}
+    \label{lem:univariateerrorestimationphitaylor}
     For a phi-function $\varphi_p(z)$ defined in \eqref{eq:scalarphifunctionsclosedform} and a Hermitian matrix
     $A \in \mathbb{C}^{n \times n}$ with the spectrum $\Lambda(A) \subset [-\alpha, 0] \subset \mathbb{R}$ for $\alpha > 0$,
     the error of the approximation $\varphi_{p, m} := \left\| v \right\|_{2} V_m \varphi_p(H_m) e_1$ scales with
@@ -373,7 +373,7 @@ first one is using truncated Taylor series to get an approximation for the left-
     \end{equation*}
     With this, we have found a polynomial $g \in \Pi_{m-1}$ that has this error bound, so we can be sure that
     the minimum of the error bound over all polynomials in $\Pi_{m-1}$ is less than this bound. Combining this
-    result with \autoref{th:univariateerrorestimationgeneral} completes the proof.
+    result with \autoref{the:univariateerrorestimationgeneral} completes the proof.
 \end{proof}
 
 Using the polynomial approximation given in \cite[Lemma A.1]{kressner2019krylov}, we can get a better error bound
@@ -393,7 +393,7 @@ Using this polynomial approximation error bound and combining it with \eqref{eq:
 gives the following theorem for the Arnoldi method approximation of $\varphi_1(A)v$ for Hermitian matrices.
 \begin{mdframed}
     \begin{theorem}
-        \label{th:univariateerrorestimationchebyshev}
+        \label{the:univariateerrorestimationchebyshev}
         For the phi-function $\varphi_1(z)$ defined in \eqref{eq:scalarphifunctionsclosedform} and a Hermitian matrix
         $A \in \mathbb{C}^{n \times n}$ with the spectrum $\Lambda(A) \subset [-\alpha, 0] \subset \mathbb{R}$ for $\alpha > 0$,
         the error of the approximation $\varphi_{1, m} := \left\| v \right\|_{2} V_m \varphi_1(H_m) e_1$ scales with $\alpha$ as
@@ -547,7 +547,7 @@ for $1 \le m \le 30$ and $0 \le p \le 4$. The convergence plots are illustrated 
 For all the test matrices in \autoref{tab:testmatrices}, the approximations are carried out for a vector of ones of a suitable
 size, except for \texttt{bcspwr10} where the vector is $v=[1\:0\:1\:0\:\dots\:1\:0]$.
 
-The error estimates given in \autoref{th:univariateerrorestimationphitaylor} and \autoref{th:univariateerrorestimationchebyshev}
+The error estimates given in Lemma \ref{lem:univariateerrorestimationphitaylor} and \autoref{the:univariateerrorestimationchebyshev}
 show that the eigenvalues of the matrix change the rate of convergence of the method. They also show that the starting error
 decreases for larger $p$'s. Although not all the test matrices satisfy the assumptions of these error estimates, we can see in
 \autoref{fig:krylovmethodunivariateevaluation} that both theoretical interpretations are consistent with the numerical results.
