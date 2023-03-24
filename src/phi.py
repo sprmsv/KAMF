@@ -88,7 +88,7 @@ class Phi:
         return phi_A_v
 
     # NOTE: Tried sparse operations but it did not help in terms of efficiency
-    def krylovsubspace(self, A: SparseMatrix, v: np.ndarray, m: int) -> np.ndarray:
+    def krylovsubspace(self, A: SparseMatrix, v: np.ndarray, m: int, ro: bool = True) -> np.ndarray:
         """Computes the phi-function evaluation using the Arnoldi iteration and
         the method described int the Niesen's paper.
         """
@@ -104,7 +104,7 @@ class Phi:
         assert m > 0
 
         # Arnoldi method
-        V_m, H_m = self.arnoldi(A, v, m)
+        V_m, H_m = self.arnoldi(A=A, v=v, m=m, ro=ro)
 
         # Fetch p
         p = self.p

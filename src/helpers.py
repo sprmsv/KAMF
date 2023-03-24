@@ -1,7 +1,7 @@
 import numpy as np
 
 import scipy as sp
-from scipy import sparse
+import scipy.sparse as sparse
 from scipy.sparse import linalg as spla
 from scipy import linalg as la
 
@@ -57,11 +57,28 @@ def relative_error(approximation: Matrix, exact: Matrix) -> float:
     if sparse.issparse(approximation):
         exact = approximation.toarray()
 
+    # Get the error vector
+    err = approximation - exact
+
+    return np.linalg.norm(err) / np.linalg.norm(exact)
+
+# NOTE: Old relative error, like in Niesen
+def relative_error_(approximation: Matrix, exact: Matrix) -> float:
+    """
+    Returns the relative error of a phi-function approximation against the exact values.
+    """
+
+    # Convert to np.ndarray
+    if sparse.issparse(exact):
+        exact = exact.toarray()
+    if sparse.issparse(approximation):
+        exact = approximation.toarray()
+
     tol = 10 * np.finfo(exact.dtype).resolution  # CHECK: What tolerance is safe?
     nz = np.where(exact > tol)
-    e = (approximation[nz] - exact[nz]) / exact[nz]
+    relerr = (approximation[nz] - exact[nz]) / exact[nz]
 
-    return np.linalg.norm(e)
+    return np.linalg.norm(relerr)
 
 def multiply_by_inverse(A: Matrix, B: Matrix, mode: str = 'left') -> np.ndarray:
     """

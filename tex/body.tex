@@ -521,7 +521,7 @@ the performance of the method is not acceptable even for small $m$'s.
         \caption{\texttt{helm2d03}.}
     \end{subfigure}
 
-    \caption{Evaluation of the implemented Arnoldi algorithm with different matrices.}
+    \caption{Convergence of the apprixmation \eqref{eq:univariatephifunctionapproximation} for different matrices.}
     \label{fig:krylovmethodunivariateevaluation}
 \end{figure}
 
@@ -536,23 +536,15 @@ In order to validate the implementation, we use an implementation of \eqref{eq:m
 method of dimension $m$, denoted by $\varphi_p^{(m)}(A)v$, against the vectors computed by \eqref{eq:matrixphifunctionsclosedform},
 denoted by $\varphi_p(A)v$, for different matrices and for small $p$'s. The relative error is computed as:
 \begin{equation*}
-    \left\| \frac{[\varphi_p^{(m)}(A)v]_{nz} - [\varphi_p(A)v]_{nz}}{[\varphi_p(A)v]_{nz}} \right\|_2.
+    \frac{\left\| \varphi_p^{(m)}(A)v - \varphi_p(A)v \right\|_2}{\left\| \varphi_p(A)v\right\|_2}.
 \end{equation*}
-Following \cite{niesen2012}, the elements that are zero in $\varphi_p^{(m)}(A)v$ are excluded from both vectors.
 After the implementation is validated, we take the approximations with $m=256$ as reference and we compute
 \begin{equation*}
-    \left\| \frac{[\varphi_p^{(m)}(A)v]_{nz} - [\varphi_p^{(256)}(A)v]_{nz}}{[\varphi_p^{(256)}(A)v]_{nz}} \right\|_2
+    \frac{\left\| \varphi_p^{(m)}(A)v - \varphi_p^{(256)}(A)v \right\|_2}{\left\| \varphi_p^{(256)}(A)v\right\|_2}
 \end{equation*}
 for $1 \le m \le 30$ and $0 \le p \le 4$. The convergence plots are illustrated in \autoref{fig:krylovmethodunivariateevaluation}.
 For all the test matrices in \autoref{tab:testmatrices}, the approximations are carried out for a vector of ones of a suitable
-size, except for \texttt{bcspwr10} where the vector is $v=[1\:0\:1\:0\:\dots\:1\:0]$.
-
-The error estimates given in Lemma \ref{lem:univariateerrorestimationphitaylor} and \autoref{the:univariateerrorestimationchebyshev}
-show that the eigenvalues of the matrix change the rate of convergence of the method. They also show that the starting error
-decreases for larger $p$'s. Although not all the test matrices satisfy the assumptions of these error estimates, we can see in
-\autoref{fig:krylovmethodunivariateevaluation} that both theoretical interpretations are consistent with the numerical results.
-For the matrix \texttt{gr\_30\_30}, the error increases for small $m$'s, which also could be justified with the theoretical
-estimations because the largest eigenvalue of this matrix is larger than the others.
+size.
 
 \begin{remark}
     The reason that the relative errors are not reported against the results of the implementation of
@@ -579,7 +571,39 @@ estimations because the largest eigenvalue of this matrix is larger than the oth
         \includegraphics[width=\textwidth]{img/krylovunivariate/gr_30_30_recursive.png}
         \caption{\texttt{gr\_30\_30}.}
     \end{subfigure}
-    \caption{Evaluation of the implemented Arnoldi algorithm against the implementation of \eqref{eq:matrixphifunctionsclosedform}
-    for matrices with mild condition numbers.}
+    \caption{Convergence of the apprixmation \eqref{eq:univariatephifunctionapproximation} against
+    the implementation of \eqref{eq:matrixphifunctionsclosedform} for matrices with mild condition numbers.}
     \label{fig:krylovmethodunivariateevaluationrecursive}
 \end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=.9\textwidth]{img/krylovunivariate/compare_spectrums.png}
+    \caption{Comparison of the convergence rate of the apprixmation \eqref{eq:univariatephifunctionapproximation} for mattrices with different spectrums.}
+    \label{fig:krylovmethodunivariatecomparespectrums}
+\end{figure}
+
+The error estimates given in Lemma \ref{lem:univariateerrorestimationphitaylor} and \autoref{the:univariateerrorestimationchebyshev}
+show that the eigenvalues of the matrix change the rate of convergence of the method. They also show that the starting error
+decreases for larger $p$'s. Although not all the test matrices satisfy the assumptions of these error estimates, we can confirm
+by looking at the plots in \autoref{fig:krylovmethodunivariateevaluation} that the second interpretation is consistent with
+the numerical results. \autoref{fig:krylovmethodunivariatecomparespectrums} emphasizes on the first interpretation by comparing
+the convergence of matrices with different spectrums. We can see that there is a pattern between the difference of the largest
+and the smallest eigenvalue of the matrix, $\gamma(A) := \lambda_{max}(A) - \lambda_{min}(A)$, and the rate of convergence of
+the method. The method converges faster when $\gamma(A)$ is smaller and this pattern is consistent for different $p$'s.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=.9\textwidth]{img/krylovunivariate/compare_errorbounds.png}
+    \caption{
+        Convergence of two matrices against their the theoretical error estimates;
+        Estimate \#1: Lemma \ref{lem:univariateerrorestimationphitaylor},
+        Estimate \#2: \autoref{the:univariateerrorestimationchebyshev}.
+        }
+    \label{fig:krylovmethodunivariatecompareerrorestimations}
+\end{figure}
+
+\todo[inline]{Write comments on \autoref{fig:krylovmethodunivariatecompareerrorestimations}}
+
+\autoref{fig:krylovmethodunivariatecompareerrorestimations} compares the theoretical error estimates with the numerical
+results for two matrices that satisfy the assumptions of the error estimates.
