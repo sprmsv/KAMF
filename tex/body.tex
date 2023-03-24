@@ -264,7 +264,7 @@ we just need to evaluate it for $H_m$ which is much smaller than $A$.
     column of $\hat{H}_m^{k-1}$. For $p-1 \ge k \ge 2$ we have
     \begin{equation*}
         \begin{aligned}
-            (\hat{H}_m^k)_{m+p} & = \hat{H}_m (\hat{H}_m^{k-1})_{m+p} \\
+            (\hat{H}_m^k)_{[:, m+p]} & = \hat{H}_m (\hat{H}_m^{k-1})_{[:, m+p]} \\
             & =
             \begin{bmatrix} H_m & e_1 & 0\\ 0 & 0 & I_{p-1}\\ 0 & 0 & 0 \end{bmatrix}
             \begin{bmatrix} 0 \\ e_{p-k+1} \\ 0 \end{bmatrix}
