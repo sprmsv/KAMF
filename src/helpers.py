@@ -62,24 +62,6 @@ def relative_error(approximation: Matrix, exact: Matrix) -> float:
 
     return np.linalg.norm(err) / np.linalg.norm(exact)
 
-# NOTE: Old relative error, like in Niesen
-def relative_error_(approximation: Matrix, exact: Matrix) -> float:
-    """
-    Returns the relative error of a phi-function approximation against the exact values.
-    """
-
-    # Convert to np.ndarray
-    if sparse.issparse(exact):
-        exact = exact.toarray()
-    if sparse.issparse(approximation):
-        exact = approximation.toarray()
-
-    tol = 10 * np.finfo(exact.dtype).resolution  # CHECK: What tolerance is safe?
-    nz = np.where(exact > tol)
-    relerr = (approximation[nz] - exact[nz]) / exact[nz]
-
-    return np.linalg.norm(relerr)
-
 def multiply_by_inverse(A: Matrix, B: Matrix, mode: str = 'left') -> np.ndarray:
     """
     Multiplies B by A^{-1} from left or right by solving
