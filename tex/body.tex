@@ -113,7 +113,7 @@ For an invertible matrix $A \in \mathbb{C}^{n \times n}$, we can do the same ste
 to get
 \begin{equation}
     \label{eq:matrixphifunctionsclosedform}
-    \varphi_p(A) = A^{-p} \left( \exp(A) - \sum_{k=0}^{p-1}{\frac{1}{k!}A^{k}} \right) = \sum_{k=p}^{\infty}{\frac{1}{k!} A^{k-p}}.
+    \varphi_p(A) = A^{-p} \left( \exp(A) - \sum_{k=0}^{p-1}{\frac{1}{k!}A^{k}} \right) = \sum_{k=0}^{\infty}{\frac{1}{(k+p)!} A^{k}}.
 \end{equation}
 
 \subsection{Bivariate Matrix Functions}
@@ -415,10 +415,62 @@ gives the following theorem for the Arnoldi method approximation of $\varphi_1(A
 
 \section{Implementations and Experiments}
 In this section, the implementations of the methods described in \autoref{sec:methods} are presented and evaluated.
-The matrices along with their properties are listed in \autoref{tab:testmatrices}. The first three matrices are
-stiffness matrices that appear for solving the Poisson's equation with the finite difference method over a uniform
-grid. The rest are collected from \cite{suitesparsecollection}.
+% The matrices along with their properties are listed in \autoref{tab:testmatrices}. The first three matrices are
+% stiffness matrices that appear for solving the Poisson's equation with the finite difference method over a uniform
+% grid. \todo{Explain more about the first three matrices.} The rest are collected from \cite{suitesparsecollection}.
+In order to test the methods, we use stiffness matrices that apear in solving the Poisson's equation by the finite
+difference method using a uniform mesh. The matrices are named based on the dimension of the problem and the number
+of interior grid points on each dimension. For instance, \texttt{fd\_2d\_0100} denotes the matrix corresponding to
+the 2D problem and using a mesh with 100 interior grid points on each dimension. These matrices are sparse, real,
+symmetric, and negative definite. They are obtained by
+\begin{equation*}
+    \begin{aligned}
+        \mathbb{R}^{n \times n} \ni fd_{1d\_n} & = (n+1)^2 K_n,\\
+        \mathbb{R}^{n^2 \times n^2} \ni fd_{2d\_n} & = (n+1)^2  (I_n \otimes K_n + K_n \otimes I_n),\\
+        \mathbb{R}^{n^3 \times n^3} \ni fd_{3d\_n} & = (n+1)^2  (
+            I_n \otimes I_n \otimes K_n + I_n \otimes K_n \otimes I_n+ K_n \otimes I_n \otimes I_n);
+        \end{aligned}
+\end{equation*}
+where $\otimes$ denotes the Kronicker product, $n$ is the number of interior grid points, and $K_n$ is a tridiagonal
+matrix defined as
+\begin{equation*}
+    K_n =
+    \begin{bmatrix}
+        -2 & 1 & 0 & \cdots & 0 \\
+        1 & -2 & 1 & \ddots & \vdots \\
+        0 & 1 & -2 & \ddots & 0 \\
+        \vdots & \ddots & \ddots & \ddots & 1 \\
+        0 & \cdots & 0 & 1 & -2  \\
+    \end{bmatrix}.
+\end{equation*}
 
+% NOTE: Smaller relgap -> worse performance of the Arnoldi method for approximating eigenvalues. Is it related?
+\autoref{fig:fdndproperties} shows the smallest eigenvalues and the relative gaps of the matrices corresponding to different
+number of interior grid points $n$. The magnitude of the smallest eigenvalue scales with $(n+1)^2$ and the relative gap
+decreases rapidely when $n$ grows. When computing $\varphi_p(tA)$, the step size is considered as $t = 1 / (n + 1)$, so that
+the magnitude of the smallest eigenvalue of the matrix $tA$ scales with $(n+1)$.
+
+\todo{Add definition of relgap}
+\begin{figure}[h!]
+    \centering
+    \begin{subfigure}[b]{0.45\textwidth}
+        \includegraphics[width=\textwidth]{img/fd_nd_eigvals.png}
+        \caption{Smallest eigenvalues.}
+        \label{fig:fdndeigvals}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\textwidth}
+        \includegraphics[width=\textwidth]{img/fd_nd_relgaps.png}
+        \caption{Relative gaps.}
+        \label{fig:fdndrelgaps}
+    \end{subfigure}
+    \caption{Smallest eigenvalues and relative gaps of the test matrices for different number of grid points.}
+    \label{fig:fdndproperties}
+\end{figure}
+
+
+% NOTE: Old table of test matrices
+\begin{comment}
 \begin{table}[h!]
     \centering
     \caption{
@@ -446,7 +498,10 @@ grid. The rest are collected from \cite{suitesparsecollection}.
         \hline
     \end{tabular}
 \end{table}
+\end{comment}
 
+% NOTE: Daniel said they are a bit unrelated to the topic
+\begin{comment}
 \begin{figure}[h!]
     \centering
     \begin{subfigure}[b]{0.45\textwidth}
@@ -487,37 +542,28 @@ errors are in an acceptable range for up to $m=500$, if re-orthogonalization is 
 matrix \texttt{fd\_3d}, where the errors explode after around $m=200$. Furthermore, we can see that re-orthogonalization
 always improves the accuracy of the method up to several orders of magnitude. By looking at the plots corresponding to \texttt{gr\_30\_30}, we can see that without re-orthogonalization,
 the performance of the method is not acceptable even for small $m$'s.
+\end{comment}
 
 \begin{figure}[h!]
     \centering
     \begin{subfigure}[b]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{img/krylovunivariate/fd_1d.png}
-        \caption{\texttt{fd\_1d}.}
+        \includegraphics[width=\textwidth]{img/krylovunivariate/fd_1d_0500.png}
+        \caption{\texttt{fd\_1d\_0500}.}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{img/krylovunivariate/fd_3d.png}
-        \caption{\texttt{fd\_3d}.}
+        \includegraphics[width=\textwidth]{img/krylovunivariate/fd_1d_4000.png}
+        \caption{\texttt{fd\_1d\_4000}.}
     \end{subfigure}
     \vfill
     \begin{subfigure}[b]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{img/krylovunivariate/orani678.png}
-        \caption{\texttt{orani678}.}
+        \includegraphics[width=\textwidth]{img/krylovunivariate/fd_2d_0025.png}
+        \caption{\texttt{fd\_2d\_0025}.}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{img/krylovunivariate/bcspwr10.png}
-        \caption{\texttt{bcspwr10}.}
-    \end{subfigure}
-    \vfill
-    \begin{subfigure}[b]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{img/krylovunivariate/gr_30_30.png}
-        \caption{\texttt{gr\_30\_30}.}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{img/krylovunivariate/helm2d03.png}
-        \caption{\texttt{helm2d03}.}
+        \includegraphics[width=\textwidth]{img/krylovunivariate/fd_2d_0100.png}
+        \caption{\texttt{fd\_2d\_0100}.}
     \end{subfigure}
 
     \caption{Convergence of the apprixmation \eqref{eq:univariatephifunctionapproximation} for different matrices.}
@@ -532,18 +578,18 @@ For computing $\exp(\hat{H}_m)$, the \texttt{scipy.linalg.expm} function from th
 is used which implements a Pade approximation with a variable order that is decided based on the array data.
 In order to validate the implementation, we use an implementation of \eqref{eq:matrixphifunctionsclosedform}, presented in
 \autoref{lst:matrixphifunctionsclosedform}, and we look at the relative error of the results from the Krylov subspace
-method of dimension $m$, denoted by $\varphi_p^{(m)}(A)v$, against the vectors computed by \eqref{eq:matrixphifunctionsclosedform},
-denoted by $\varphi_p(A)v$, for different matrices and for small $p$'s. The relative error is computed as:
+method of dimension $m$, denoted by $\varphi_p^{(m)}(tA)v$, against the vectors computed by \eqref{eq:matrixphifunctionsclosedform},
+denoted by $\varphi_p(tA)v$, for different matrices and for small $p$'s. The relative error is computed as:
 \begin{equation*}
-    \frac{\left\| \varphi_p^{(m)}(A)v - \varphi_p(A)v \right\|_2}{\left\| \varphi_p(A)v\right\|_2}.
+    \frac{\left\| \varphi_p^{(m)}(tA)v - \varphi_p(tA)v \right\|_2}{\left\| \varphi_p(tA)v\right\|_2}.
 \end{equation*}
-After the implementation is validated, we take the approximations with $m=256$ as reference and we compute
+After the implementation is validated, we take the approximations with $m=m^*$ as reference and we compute
 \begin{equation*}
-    \frac{\left\| \varphi_p^{(m)}(A)v - \varphi_p^{(256)}(A)v \right\|_2}{\left\| \varphi_p^{(256)}(A)v\right\|_2}
+    \frac{\left\| \varphi_p^{(m)}(tA)v - \varphi_p^{(m^*)}(tA)v \right\|_2}{\left\| \varphi_p^{(m^*)}(tA)v\right\|_2}
 \end{equation*}
-for $1 \le m \le 30$ and $0 \le p \le 4$. The convergence plots are illustrated in \autoref{fig:krylovmethodunivariateevaluation}.
-For all the test matrices in \autoref{tab:testmatrices}, the approximations are carried out for a vector of ones of a suitable
-size.
+for $0 \le p \le 4$. For each matrix, $m^*$ is picked large enough so that the method converges before $m=m^*$.
+The convergence plots are illustrated in \autoref{fig:krylovmethodunivariateevaluation}.
+For all the test matrices, the approximations are carried out for a vector of ones of a suitable size.
 
 \begin{remark}
     The reason that the relative errors are not reported against the results of the implementation of
@@ -552,23 +598,22 @@ size.
     inverse is avoided by solving the corresponding system of equations instead, it can still perform poorly because
     the condition number of $A^p$ grows as $p$ is increased. This hypothesis is supported by
     \autoref{fig:krylovmethodunivariateevaluationrecursive} where the convergence plots are computed against this implementation
-    for two matrices with relatively mild condition numbers. We can see that as $p$ is increased, the minimum error that could be
-    reached gets worse. This shows that the approximation is performing better than the implementation of
-    \eqref{eq:matrixphifunctionsclosedform}.
-    Furthermore, this pattern is less significant for the matrix \texttt{fd\_3d} which has a smaller condition number
-    than \texttt{gr\_30\_30}. This is also the case for other test matrices.
+    for two matrices. We can see that as $p$ is increased, the minimum error that is reached by the approximation gets worse.
+    This shows that the approximation is performing better than the implementation of \eqref{eq:matrixphifunctionsclosedform}.
+    Furthermore, this pattern is more severe for the matrix \texttt{fd\_1d\_0500} which has a bigger condition number
+    than \texttt{fd\_2d\_0100}.
 \end{remark}
 
 \begin{figure}[h!]
     \centering
     \begin{subfigure}[b]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{img/krylovunivariate/fd_3d_recursive.png}
-        \caption{\texttt{fd\_3d}.}
+        \includegraphics[width=\textwidth]{img/krylovunivariate/fd_1d_0500_recursive.png}
+        \caption{\texttt{fd\_1d\_0500}.}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{img/krylovunivariate/gr_30_30_recursive.png}
-        \caption{\texttt{gr\_30\_30}.}
+        \includegraphics[width=\textwidth]{img/krylovunivariate/fd_2d_0100_recursive.png}
+        \caption{\texttt{fd\_2d\_0100}.}
     \end{subfigure}
     \caption{Convergence of the apprixmation \eqref{eq:univariatephifunctionapproximation} against
     the implementation of \eqref{eq:matrixphifunctionsclosedform} for matrices with mild condition numbers.}
@@ -577,32 +622,29 @@ size.
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=.9\textwidth]{img/krylovunivariate/compare_spectrums.png}
-    \caption{Comparison of the convergence rate of the apprixmation \eqref{eq:univariatephifunctionapproximation} for mattrices with different spectrums.}
+    \includegraphics[width=.9\textwidth]{img/krylovunivariate/compare_fd_1d_n.png}
+    \caption{Comparison of the convergence rate of the apprixmation \eqref{eq:univariatephifunctionapproximation} ($p = 1$) for different matrices.}
     \label{fig:krylovmethodunivariatecomparespectrums}
 \end{figure}
 
 The error estimates given in Lemma \ref{lem:univariateerrorestimationphitaylor} and \autoref{the:univariateerrorestimationchebyshev}
 show that the eigenvalues of the matrix change the rate of convergence of the method. They also show that the starting error
-decreases for larger $p$'s. Although not all the test matrices satisfy the assumptions of these error estimates, we can confirm
-by looking at the plots in \autoref{fig:krylovmethodunivariateevaluation} that the second interpretation is consistent with
-the numerical results. \autoref{fig:krylovmethodunivariatecomparespectrums} emphasizes on the first interpretation by comparing
-the convergence of matrices with different spectrums. We can see that there is a pattern between the difference of the largest
-and the smallest eigenvalue of the matrix, $\gamma(A) := \lambda_{max}(A) - \lambda_{min}(A)$, and the rate of convergence of
-the method. The method converges faster when $\gamma(A)$ is smaller and this pattern is consistent for different $p$'s.
+decreases for larger $p$'s. It could be confirmed by looking at the plots in \autoref{fig:krylovmethodunivariateevaluation} that
+the second interpretation is consistent with the numerical results. \autoref{fig:krylovmethodunivariatecomparespectrums} emphasizes
+on the first interpretation by comparing the convergence of matrices with different spectrums. We can see that the method converges
+faster when the smallest eigenvalue of the matrix is smaller in magnitude and this pattern is consistent for different $p$'s.
 
 \begin{figure}[h!]
     \centering
     \includegraphics[width=.9\textwidth]{img/krylovunivariate/compare_errorbounds.png}
     \caption{
         Convergence of two matrices against their the theoretical error estimates;
-        Estimate \#1: Lemma \ref{lem:univariateerrorestimationphitaylor},
-        Estimate \#2: \autoref{the:univariateerrorestimationchebyshev}.
+        black: numerical results,
+        green: theoretical error estimate of \autoref{the:univariateerrorestimationchebyshev}.
         }
     \label{fig:krylovmethodunivariatecompareerrorestimations}
 \end{figure}
 
-\todo[inline]{Write comments on \autoref{fig:krylovmethodunivariatecompareerrorestimations}}
-
-\autoref{fig:krylovmethodunivariatecompareerrorestimations} compares the theoretical error estimates with the numerical
-results for two matrices that satisfy the assumptions of the error estimates.
+\autoref{fig:krylovmethodunivariatecompareerrorestimations} compares the theoretical error estimate with the numerical
+results for two matrices. We can see that the numerical rate of convergence is consistent with the one from the theoretical
+error estimate.

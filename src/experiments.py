@@ -128,7 +128,7 @@ def study_approximation_convergence(
     if title:
         plt.title(title)
     plt.xlabel('Dimension of the Krylov subspace ($m$)')
-    plt.ylabel('Relative error of $\\varphi_p(A)v$')
+    plt.ylabel('Relative error of $\\varphi_p(tA)v$')
 
     return data
 

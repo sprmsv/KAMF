@@ -1,7 +1,7 @@
 import numpy as np
 
 import scipy as sp
-import scipy.sparse as sparse
+import scipy.sparse as sps
 from scipy.sparse import linalg as spla
 from scipy import linalg as la
 
@@ -23,28 +23,28 @@ def get_FD_matrix(n: int, d: int, dtype: np.dtype = np.float64, format: str = 'c
     """
 
     # Construct blocks
-    I = sparse.identity(n=n, dtype=dtype, format=format)
-    E = sparse.eye(m=n, k=1, dtype=dtype, format=format)\
-        + sparse.eye(m=n, k=-1, dtype=dtype, format=format)
+    I = sps.identity(n=n, dtype=dtype, format=format)
+    E = sps.eye(m=n, k=1, dtype=dtype, format=format)\
+        + sps.eye(m=n, k=-1, dtype=dtype, format=format)
     K = -2 * I + E
 
     # Construct A
     if d == 1:
         A = K
     elif d == 2:
-        A = sparse.kron(I, K) + sparse.kron(K, I)
+        A = sps.kron(I, K) + sps.kron(K, I)
     elif d == 3:
-        A = sparse.kron(I, sparse.kron(I, K)) + sparse.kron(K, sparse.kron(I, I))
+        A = sps.kron(I, sps.kron(I, K)) + sps.kron(I, sps.kron(K, I)) + sps.kron(K, sps.kron(I, I))
 
     # Change format
     if format == 'csc':
-        A = sparse.csc_matrix(A)
+        A = sps.csc_matrix(A)
     elif format == ' csr':
-        A = sparse.csr_matrix(A)
+        A = sps.csr_matrix(A)
     else:
         raise Exception('Format not supported.')
 
-    return A
+    return ((n + 1) ** 2) * A
 
 def relative_error(approximation: Matrix, exact: Matrix) -> float:
     """
@@ -52,9 +52,9 @@ def relative_error(approximation: Matrix, exact: Matrix) -> float:
     """
 
     # Convert to np.ndarray
-    if sparse.issparse(exact):
+    if sps.issparse(exact):
         exact = exact.toarray()
-    if sparse.issparse(approximation):
+    if sps.issparse(approximation):
         exact = approximation.toarray()
 
     # Get the error vector
@@ -73,10 +73,10 @@ def multiply_by_inverse(A: Matrix, B: Matrix, mode: str = 'left') -> np.ndarray:
     """
 
     # Set the solve method based on the type of the input
-    if sp.sparse.issparse(A) and sp.sparse.issparse(B):
+    if sps.issparse(A) and sps.issparse(B):
         solve = spla.spsolve
         sparse = True
-    elif (not sp.sparse.issparse(A)) and (not sp.sparse.issparse(B)):
+    elif (not sps.issparse(A)) and (not sps.issparse(B)):
         solve = la.solve
         sparse = False
     else:
@@ -91,3 +91,12 @@ def multiply_by_inverse(A: Matrix, B: Matrix, mode: str = 'left') -> np.ndarray:
         raise Exception('Mode not supported.')
 
     return C
+
+def calculate_relgap(A: SparseMatrix) -> float:
+    """Calculates the relative gap of a given matrix."""
+
+    sa = sps.linalg.eigsh(A, k=2, which='SA')[0]
+    lam_1 = sa[0]
+    lam_2 = sa[1]
+    lam_n = sps.linalg.eigsh(A, k=1, which='LA')[0]
+    return float((lam_2 - lam_1) / (lam_n - lam_1))

@@ -8,11 +8,6 @@ from src.helpers import multiply_by_inverse
 from src.definitions import Matrix, SparseMatrix
 
 
-# NOTE: No tolerance for scipy.linalg.expm
-# NOTE: No tolerance for np.linalg.solve
-
-# TODO: Implement Lancoz's algorithm for symmetric matrices
-
 class Phi:
     def __init__(self, p: int):
         assert isinstance(p, int)
@@ -99,9 +94,9 @@ class Phi:
         # Check dimensions
         n = len(v)
         dtype = A.dtype
-        assert A.shape == (n, n)
-        assert m <= n
-        assert m > 0
+        assert A.shape == (n, n), f'{A.shape} != {(n, n)}'
+        assert m <= n, f'{m} > {n}'
+        assert m > 0, f'{m} <= 0'
 
         # Arnoldi method
         V_m, H_m = self.arnoldi(A=A, v=v, m=m, ro=ro)
