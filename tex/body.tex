@@ -225,14 +225,13 @@ we just need to evaluate it for $H_m$ which is much smaller than $A$.
 
 \begin{lemma}
     \label{lem:hhatpowered}
-    Let $A \in \mathbb{C}^{n \times n}$, $v \in \mathbb{C}$, $V_m \in \mathbb{C}^{n \times m}$ be an
-    orthonormal basis for the Krylov subspace of order $m$, $\mathcal{K}_m$, defined in \eqref{eq:krylovsubspacedefinition},
-    and $\mathbb{C}^{m \times m} \ni H_m = V_m^* A V_m$. If we construct a matrix $\hat{H}_m \in \mathbb{C}^{(m+p) \times (m+p)}$ as
+    Consider a matrix $H \in \mathbb{C}^{m \times m}$.
+    If we construct a matrix $\hat{H} \in \mathbb{C}^{(m+p) \times (m+p)}$ as
     \begin{equation}
         \label{eq:hhatdefinition}
-        \hat{H}_m =
+        \hat{H} =
         \begin{bmatrix}
-            H_m & e_1 & 0       \\
+            H & e_1 & 0       \\
             0   & 0   & I_{p-1} \\
             0   & 0   & 0
         \end{bmatrix}
@@ -240,17 +239,17 @@ we just need to evaluate it for $H_m$ which is much smaller than $A$.
         \begin{matrix} \quad \text{rows} \\ \quad \text{row(s)} \\ \quad \text{row} \end{matrix}
         \: ,
     \end{equation}
-    The last column of $\hat{H}_m^k$, denoted by $(\hat{H}_m)_{[:, m+p]} \in \mathbb{C}^{m+p}$ takes the form
+    with $p \ge 1$, the last column of $\hat{H}^k$, denoted by $(\hat{H}^k)_{[:, m+p]} \in \mathbb{C}^{m+p}$ takes the form
     \begin{equation*}
         \label{eq:hhatpowered}
-        (\hat{H}_m^k)_{[:, m+p]} =
+        (\hat{H}^k)_{[:, m+p]} =
         \begin{cases}
             \begin{bmatrix} 0 \\ e_{p-k} \\ 0 \end{bmatrix}
             \begin{matrix} m \\ p-1 \\ 1 \end{matrix}
             \; \begin{matrix} \text{rows} \\ \text{row(s)} \\ \text{row} \end{matrix},
             & k \in \{ 1, 2, \dots, p-1 \}
             \\
-            \begin{bmatrix} H_m^{k-p} e_1 \\ 0 \\ 0 \end{bmatrix}
+            \begin{bmatrix} H^{k-p} e_1 \\ 0 \\ 0 \end{bmatrix}
             \begin{matrix} m \\ p-1 \\ 1 \end{matrix}
             \; \begin{matrix} \text{rows} \\ \text{rows} \\ \text{rows} \end{matrix},
             & k \ge p
@@ -259,37 +258,37 @@ we just need to evaluate it for $H_m$ which is much smaller than $A$.
 \end{lemma}
 \begin{proof}
     For $k=1$, the lemma holds by definition. For $k \ge 2$, we now show that assuming that it holds for $k-1$, it is also
-    true for $k$. Since $\hat{H}_m^k = \hat{H}_m \hat{H}_m^{k-1}$, we can get the $m+p$\textsuperscript{th} column
-    of $\hat{H}_m^k$, denoted by $(\hat{H}_m^k)_{[:, m+p]}$, by multiplying only the $m+p$\textsuperscript{th}
-    column of $\hat{H}_m^{k-1}$. For $p-1 \ge k \ge 2$ we have
+    true for $k$. Since $\hat{H}^k = \hat{H} \hat{H}^{k-1}$, we can get the $m+p$\textsuperscript{th} column
+    of $\hat{H}^k$, denoted by $(\hat{H}^k)_{[:, m+p]}$, by multiplying only the $m+p$\textsuperscript{th}
+    column of $\hat{H}^{k-1}$. For $p-1 \ge k \ge 2$ we have
     \begin{equation*}
         \begin{aligned}
-            (\hat{H}_m^k)_{[:, m+p]} & = \hat{H}_m (\hat{H}_m^{k-1})_{[:, m+p]} \\
+            (\hat{H}^k)_{[:, m+p]} & = \hat{H} (\hat{H}^{k-1})_{[:, m+p]} \\
             & =
-            \begin{bmatrix} H_m & e_1 & 0\\ 0 & 0 & I_{p-1}\\ 0 & 0 & 0 \end{bmatrix}
+            \begin{bmatrix} H & e_1 & 0\\ 0 & 0 & I_{p-1}\\ 0 & 0 & 0 \end{bmatrix}
             \begin{bmatrix} 0 \\ e_{p-k+1} \\ 0 \end{bmatrix}
             =
             \begin{bmatrix} 0 \\ e_{p-k} \\ 0 \end{bmatrix}
         \end{aligned}.
     \end{equation*}
-    After each multiplication, we get the previous column of $\hat{H}_m$ until we reach the $m+1$\textsuperscript{th} column
-    for $k=p$, $(\hat{H}_m^p)_{[:, m+p]} = \begin{bmatrix}e_1^\top & 0 & 0\end{bmatrix}^\top$, which is consistent with \eqref{eq:hhatpowered}.
+    After each multiplication, we get the previous column of $\hat{H}$ until we reach the $m+1$\textsuperscript{th} column
+    for $k=p$, $(\hat{H}^p)_{[:, m+p]} = \begin{bmatrix}e_1^\top & 0 & 0\end{bmatrix}^\top$, which is consistent with \eqref{eq:hhatpowered}.
     With this, for $k \ge p+1$ we have
     \begin{equation*}
         \begin{aligned}
-            (\hat{H}_m^k)_{[:, m+p]} & = \hat{H}_m (\hat{H}_m^{k-1})_{[:, m+p]} \\
+            (\hat{H}^k)_{[:, m+p]} & = \hat{H} (\hat{H}^{k-1})_{[:, m+p]} \\
             & =
-            \begin{bmatrix} H_m & e_1 & 0\\ 0 & 0 & I_{p-1}\\ 0 & 0 & 0 \end{bmatrix}
-            \begin{bmatrix} H_m^{k-1-p} e_1 \\ 0 \\ 0 \end{bmatrix}
+            \begin{bmatrix} H & e_1 & 0\\ 0 & 0 & I_{p-1}\\ 0 & 0 & 0 \end{bmatrix}
+            \begin{bmatrix} H^{k-1-p} e_1 \\ 0 \\ 0 \end{bmatrix}
             =
-            \begin{bmatrix} H_m^{k-p} e_1 \\ 0 \\ 0 \end{bmatrix}
+            \begin{bmatrix} H^{k-p} e_1 \\ 0 \\ 0 \end{bmatrix}
         \end{aligned}.
     \end{equation*}
 \end{proof}
 
 
 To compute the approximation in \eqref{eq:univariatephifunctionapproximation}, we follow \cite{niesen2012} and read $\varphi_p(H_m) e_1$
-from the first $m$ entries of the last column of $\exp(\hat{H}_m)$, with $\hat{H}_m$ defined in \eqref{eq:hhatdefinition}.
+from the first $m$ entries of the last column of $\exp(\hat{H}_m)$, with $\hat{H}_m$ defined in \eqref{eq:hhatdefinition} for $H = H_m$.
 Using Lemma \ref{lem:hhatpowered} and \eqref{eq:matrixphifunctionsclosedform}, it could easily be shown that these two vectors are identical:
 \begin{equation*}
     \exp(\hat{H}_m)_{[1 : m, m+p]}
