@@ -417,7 +417,7 @@ In this section, the implementations of the methods described in \autoref{sec:me
 % The matrices along with their properties are listed in \autoref{tab:testmatrices}. The first three matrices are
 % stiffness matrices that appear for solving the Poisson's equation with the finite difference method over a uniform
 % grid. \todo{Explain more about the first three matrices.} The rest are collected from \cite{suitesparsecollection}.
-In order to test the methods, we use stiffness matrices that apear in solving the Poisson's equation by the finite
+In order to test the methods, we use stiffness matrices that appear in solving the Poisson's equation by the finite
 difference method using a uniform mesh. The matrices are named based on the dimension of the problem and the number
 of interior grid points on each dimension. For instance, \texttt{fd\_2d\_0100} denotes the matrix corresponding to
 the 2D problem and using a mesh with 100 interior grid points on each dimension. These matrices are sparse, real,
@@ -430,7 +430,7 @@ symmetric, and negative definite. They are obtained by
             I_n \otimes I_n \otimes K_n + I_n \otimes K_n \otimes I_n+ K_n \otimes I_n \otimes I_n);
         \end{aligned}
 \end{equation*}
-where $\otimes$ denotes the Kronicker product, $n$ is the number of interior grid points, and $K_n$ is a tridiagonal
+where $\otimes$ denotes the Kronecker product, $n$ is the number of interior grid points, and $K_n$ is a tridiagonal
 matrix defined as
 \begin{equation*}
     K_n =
@@ -446,7 +446,7 @@ matrix defined as
 % NOTE: Smaller relgap -> worse performance of the Arnoldi method for approximating eigenvalues. Is it related?
 \autoref{fig:fdndproperties} shows the smallest eigenvalues and the relative gaps of the matrices corresponding to different
 number of interior grid points $n$. The magnitude of the smallest eigenvalue scales with $(n+1)^2$ and the relative gap
-decreases rapidely when $n$ grows. When computing $\varphi_p(tA)$, the step size is considered as $t = 1 / (n + 1)$, so that
+decreases rapidly when $n$ grows. When computing $\varphi_p(tA)$, the step size is considered as $t = 1 / (n + 1)$, so that
 the magnitude of the smallest eigenvalue of the matrix $tA$ scales with $(n+1)$.
 
 \todo{Add definition of relgap}
@@ -637,7 +637,7 @@ faster when the smallest eigenvalue of the matrix is smaller in magnitude and th
     \centering
     \includegraphics[width=.9\textwidth]{img/krylovunivariate/compare_errorbounds.png}
     \caption{
-        Convergence of two matrices against their the theoretical error estimates;
+        Convergence of two matrices against their theoretical error estimates;
         black: numerical results,
         green: theoretical error estimate of \autoref{the:univariateerrorestimationchebyshev}.
         }
