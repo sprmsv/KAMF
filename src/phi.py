@@ -64,25 +64,6 @@ class Phi:
 
         return phiAv.reshape(-1)
 
-    # UNUSED: There could be multiplicity in the eigenvalues.
-    # CHECK: Is it worth to implement the Jordan canonical form?
-    def eigendecomposition(self, A: np.ndarray, v: np.ndarray) -> np.ndarray:
-        """Computes the phi-function evaluation using the eigendecomposition and
-        the evaluation of the scalar function of the eigenvalues.
-        """
-
-        lambda_, S = np.linalg.eig(A)
-        phi_A = multiply_by_inverse(
-            A=S,
-            B=(S @ np.diag(self.scalar(lambda_))),
-            mode='right',
-        )
-        # phi_A = S @ np.diag(self.scalar(lambda_)) @ np.linalg.inv(S)
-        phi_A_v = phi_A @ v
-
-        return phi_A_v
-
-    # NOTE: Tried sparse operations but it did not help in terms of efficiency
     def krylovsubspace(self, A: SparseMatrix, v: np.ndarray, m: int, ro: bool = True) -> np.ndarray:
         """Computes the phi-function evaluation using the Arnoldi iteration and
         the method described int the Niesen's paper.
@@ -165,70 +146,10 @@ class Phi:
 
         return V_m, H_m
 
-    # UNUSED
-    # NOTE: It is not efficient
-    @staticmethod
-    def arnoldi_sparse(A: SparseMatrix, v: np.ndarray, m: int, ro: bool = True) -> tuple[np.ndarray, np.ndarray]:
-        """
-        Arnoldi algorithm (matrix version, lecture notes) with sparse operations.
-        """
-
-        # Check dimensions
-        n = len(v)
-        dtype = A.dtype
-        format = A.format
-        assert A.shape == (n, n)
-        assert m <= n
-
-        # Initialize V_m and H_m
-        V_m = sps.csr_matrix((n, m), dtype=dtype)
-        H_m = sps.csr_matrix((m, m), dtype=dtype)
-        A_ = A.tocsc(copy=True)
-
-        V_m = V_m.tolil()
-        V_m[:, 0] = v / la.norm(v)
-        V_m = V_m.tocsr()
-        for j in range(0, m):
-            w = A_ @ V_m[:, j]
-            H_m = H_m.tolil()
-            H_m[:(j+1), j] = V_m[:, :(j+1)].conjugate().T @ w
-            H_m = H_m.tocsr()
-            u_hat = w - V_m[:, :(j+1)] @ H_m[:(j+1), j]
-
-            # Reorthogonalization
-            if ro:
-                u_hat_norm = spla.norm(u_hat)
-                w_norm = spla.norm(w)
-                if u_hat_norm < .7 * w_norm:
-                    h_hat = V_m[:, :(j+1)].conjugate().T @ u_hat
-                    H_m = H_m.tolil()
-                    H_m[:(j+1), j] += h_hat
-                    H_m = H_m.tocsr()
-                    u_hat -= V_m[:, :(j+1)] @ h_hat
-
-            if j + 1 >= m:
-                break
-            H_m = H_m.tolil()
-            H_m[j + 1, j] = spla.norm(u_hat)
-            H_m = H_m.tocsr()
-            V_m = V_m.tolil()
-            V_m[:, j + 1] = u_hat / H_m[j + 1, j]
-            V_m = V_m.tocsr()
-
-        if format == 'csc':
-            V_m = V_m.tocsc()
-            H_m = H_m.tocsc()
-        elif format == 'csr':
-            V_m = V_m.tocsr()
-            H_m = H_m.tocsr()
-
-        return V_m, H_m
-
     @staticmethod
     def arnoldi_(A: np.ndarray, v: np.ndarray, m: int, ro: bool = True) -> tuple[np.ndarray, np.ndarray]:
         """
         Arnoldi algorithm using matrix multiplications (lecture notes).
-        # NOTE: Seems to have numerical issues (matmul warnings)
         """
 
         # Check dimensions
