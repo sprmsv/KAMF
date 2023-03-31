@@ -4,10 +4,11 @@ import scipy as sp
 import scipy.sparse as sps
 from scipy.sparse import linalg as spla
 from scipy import linalg as la
+import matplotlib.pyplot as plt
 
 from src.definitions import Matrix, SparseMatrix
 
-def get_FD_matrix(n: int, d: int, dtype: np.dtype = np.float64, format: str = 'csc') -> SparseMatrix:
+def get_FD_matrix(n: int, d: int, scale: bool = False, dtype: np.dtype = np.float64, format: str = 'csc') -> SparseMatrix:
     """
     Returns the stiffness matrix for finite difference discretization
     of the Poisson's equation with a uniform grid.
@@ -44,7 +45,11 @@ def get_FD_matrix(n: int, d: int, dtype: np.dtype = np.float64, format: str = 'c
     else:
         raise Exception('Format not supported.')
 
-    return ((n + 1) ** 2) * A
+    # Scale if specified
+    if scale:
+        A *= (n + 1) ** 2
+
+    return A
 
 def relative_error(approximation: Matrix, exact: Matrix) -> float:
     """
@@ -92,11 +97,49 @@ def multiply_by_inverse(A: Matrix, B: Matrix, mode: str = 'left') -> np.ndarray:
 
     return C
 
-def calculate_relgap(A: SparseMatrix) -> float:
-    """Calculates the relative gap of a given matrix."""
+def calculate_relgap(
+        A: SparseMatrix,
+        lam_min1: float = None, lam_min2: float = None, lam_max1: float = None, lam_max2: float = None,
+    ) -> float:
+    """Calculates the relative gap of a given Hermitian matrix."""
 
-    sa = sps.linalg.eigsh(A, k=2, which='SA')[0]
-    lam_1 = sa[0]
-    lam_2 = sa[1]
-    lam_n = sps.linalg.eigsh(A, k=1, which='LA')[0]
-    return float((lam_2 - lam_1) / (lam_n - lam_1))
+    if (not lam_min1) or (not lam_min2):
+        sa = spla.eigsh(A, k=2, which='SA')[0]
+    if not lam_min1:
+        lam_min1 = sa[0]
+    if not lam_min2:
+        lam_min2 = sa[1]
+    if (not lam_max1) or (not lam_max2):
+        la_ = spla.eigsh(A, k=2, which='LA')[0]
+    if not lam_max2:
+        lam_max2 = la_[0]
+    if not lam_max1:
+        lam_max1 = la_[1]
+
+    relgap_l = float((lam_min2 - lam_min1) / (lam_max1 - lam_min1))
+    relgap_r = float((lam_max1 - lam_max2) / (lam_max1 - lam_min1))
+
+    return relgap_l, relgap_r
+
+def plot_eigenvalues(As: list[SparseMatrix], legends: list[str] = None, range_: tuple = None) -> None:
+    """Plots the eigenvalues of several matrices."""
+
+    fig, ax = plt.subplots(1, 1, figsize=(10, 5))
+    for idx, A in enumerate(As):
+        eigs = la.eigvalsh(A.toarray())
+        ax.scatter(x=eigs, y=[-idx]*len(eigs), s=10, label=(legends[idx] if legends else None))
+    ax.set(
+        ylim=[-len(As), +1],
+        xlabel='$\\lambda$',
+        yticks=[],
+    )
+    if range_: ax.set(xticks = np.linspace(*range_, 5))
+    if legends: ax.legend(loc='right', bbox_to_anchor=(1.15, 0.5))
+
+def spectral_scale(A: SparseMatrix, a: float, b: float) -> SparseMatrix:
+    """Scales the spectral interval of a Hermitian matrix to a pre-specified domain [a, b]."""
+
+    lmin = sps.linalg.eigsh(A, k=1, which='SA', return_eigenvectors=False).item()
+    lmax = sps.linalg.eigsh(A, k=1, which='LA', return_eigenvectors=False).item()
+    I = sps.identity(n=A.shape[0], dtype=A.dtype, format=A.format)
+    return (A - lmin * I) * (b - a) / (lmax - lmin) + (a * I)

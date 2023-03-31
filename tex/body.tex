@@ -150,24 +150,79 @@ $f$ only exists if the mixed partial derivatives in the definition exist and are
 \section{Methodology}\label{sec:methods}
 
 \subsection{Krylov Subspaces and the Arnoldi Algorithm}\label{sec:arnoldi}
-\todo[inline]{Describe the Arnoldi Iteration from \cite{trefethen1997numerical}.}
+Given a matrix $A \in \mathbb{C}^{n \times n}$ and a vector $v \neq 0 \in \mathbb{C}$, the Krylov subspace of order
+$m \leq n$ for them is defined \cite{golub2013matrix} as
+\begin{equation}
+    \label{eq:krylovsubspacedefinition}
+    \begin{aligned}
+        \mathcal{K}_m(A, v) & := \setspan\{v, Av, A^{2}v, \dots, A^{m-1}v \}\\
+         & = \{g(A)v \:|\: g \in \Pi_{m-1} \},
+    \end{aligned}
+\end{equation}
+where $\Pi_{m-1}$ is the set of all polynomials of order up to $m-1$.
+Krylov supspaces are essential in many methods in numerical linear algebra for solving eigenvalue problems.
+However, the vectors $v, Av, A^{2}v, \dots, A^{m-1}v$ are not a good basis for $\mathcal{K}_m(A, v)$. We
+know from the power method that these vectors have almost the same direction and converge to the eigenvector
+paired with the biggest eigenvalue of $A$. From the Arnoldi algorithm \cite{trefethen1997numerical} described in
+Algorithm \ref{alg:polynomialarnoldi}, we can get an orthonormal basis for $\mathcal{K}_m(A, v)$ and an upper Hessenberg
+matrix $H_m = V_m^* A V_m$. The Arnoldi factorization reads
+\begin{equation}
+    \label{eq:arnoldifactorization}
+    A V_m = V_m H_m + h_{m+1, m} v_{m+1} e_m^\top,
+\end{equation}
+where $e_m$ is the last standard basis vector of $\mathbb{R}^{m}$.
+
+\begin{algorithm}
+    \caption{Arnoldi algorithm}
+    \label{alg:polynomialarnoldi}
+    \KwIn{Matrix $A \in \mathbb{C}^{n \times n}$, vector $v \in \mathbb{C} \backslash \{0\}$, $m \le n \in \mathbb{N}$}
+    \KwOut{Orthonormal basis $V_m = (v_1, v_2, \dots, v_m, v_{m+1})$ of $\mathcal{K}_m(A, v)$}
+    Set $v_1 = v / \left\| v \right\|_2$\;
+    Set $V_1 = v$\;
+    \For{$j = 1, 2, \dots, m$}{
+        Compute $w = A v_j$\;
+        Compute $h_j = V_j^* w$\;
+        Compute $\tilde{v}_{j+1} = w - V_j h_j$\;
+        \If{$\left\| \tilde{v}_{j+1} \right\|_2 <  \left\| w \right\|_2$}{
+            Set $\hat{h}_j = V_j^* \tilde{v}_{j+1}$\;
+            Set $h_j = h_j + \hat{h}_j$\;
+            Set $\tilde{v}_{j+1} = \tilde{v}_{j+1} - V_j \hat{h}_j$\;
+            }
+            Set $h_{j+1, j} = \left\| \tilde{v}_{j+1} \right\|_2$\;
+            Set $v_{j+1} = \tilde{v}_{j+1} / h_{j+1, j}$\;
+            Set $V_{j+1} = (V_j, v_{j+1})$\;
+            }
+        \end{algorithm}
+
+Similarly, the rational Krylov subspace \cite{guttel2013rational} associated with the matrix $A$ and the vector $v$ with non-zero poles
+$\xi_1, \xi_2, \dots, \xi_m \in \overline{\mathbb{C}} := \mathbb{C} \cup \{ \infty\}$ different than all eigenvalues of $A$, is defined as
+\begin{equation}
+    \label{eq:rationalkrylovsubspacedefinition}
+    \begin{aligned}
+        \mathcal{Q}_m(A, v) & := q_{m-1}(A)^{-1} \setspan\{v, Av, A^{2}v, \dots, A^{m-1}v \}\\
+         & = \{q_{m-1}(A)^{-1} g(A)v \:|\: g \in \Pi_{m-1} \},
+    \end{aligned}
+\end{equation}
+where $g / q_{m-1}$ is a rational function with a prescribed denominator
+\begin{equation*}
+    \Pi_{m-1} \ni q_{m-1}(z) = \prod_{j=1}^{m-1}(1 - z / \xi_j).
+\end{equation*}
+
+Algorithm \ref{alg:polynomialarnoldi} could be slightly modified to get an orthonormal basis for $\mathcal{Q}_m(A, v)$. In line 4, instead
+of $w = A v_j$ we set $w = (I - A / \xi_j)^{-1} A v_j$. The rational Arnoldi factorization reads
+\begin{equation}
+    \label{eq:rationalarnoldifactorization}
+    A V_m (I_m + H_m D_m) + A h_{m+1, m} v_{m+1} \xi_m^{-1} e_m^\top = V_m H_m + h_{m+1, m} v_{m+1} e_m^\top.,
+\end{equation}
+where $D_m = \diag(\xi_1^{-1}, \dots, \xi_m^{-1})$.
 
 \subsection{Approximation of \texorpdfstring{$\varphi$}{Phi}-functions}\label{sec:krylovmethodunivariate}
 
-\subsubsection{Approximation}
-In order to evaluate $\varphi_p(A)v$ for a matrix $A \in \mathbb{C}^{n \times n}$ and a vector $v \in \mathbb{C}$
-more efficiently, we can run the Arnoldi algorithm to get an orthonormal basis $V_m \in \mathbb{C}^{n \times m}$
-for the Krylov subspace of order $m$ induced by the matrix $A$ and the vector $v$:
-\begin{equation}
-    \label{eq:krylovsubspacedefinition}
-    \mathcal{K}_m = \setspan\{v, Av, A^{2}v, \dots, A^{m-1}v \}, \quad m \leq n,
-\end{equation}
-and the projection of the action of $A$ on this Krylov subspace $H_m = V_m^* A V_m$. The Arnoldi factorization
-reads
-\begin{equation}
-    \label{eq:arnoldifactorization}
-    A V_m = V_m H_m + h_{m+1, m} v_{m+1} e_m^\top.
-\end{equation}
+\subsubsection{Polynomial Krylov approximation}
+\label{sec:polynomialkrylovapproximation}
+In order to evaluate $\varphi_p(A)v$ for a matrix $A \in \mathbb{C}^{n \times n}$ and a vector $v \in \mathbb{C}$,
+we do the Arnoldi algorithm to get an orthonormal basis $V_m \in \mathbb{C}^{n \times m}$
+for $\mathcal{K}_m(A, v)$ and the projection of the action of $A$ on this Krylov subspace $H_m = V_m^* A V_m$.
 
 \begin{lemma}
     \label{lem:krylovsubspacepowered}
@@ -298,6 +353,21 @@ Using Lemma \ref{lem:hhatpowered} and \eqref{eq:matrixphifunctionsclosedform}, i
     = \sum_{k=p}^{\infty}{\frac{1}{k!} H_m^{k-p}e_1} = \varphi_p(H_m) e_1
 \end{equation*}
 
+
+\subsubsection{Rational Krylov approximation}
+\label{sec:rationalkrylovapproximation}
+\todo[inline]{Describe pole selection}
+Similar to \autoref{sec:polynomialkrylovapproximation}, we do the modified Arnoldi algorithm to get an orthonormal
+basis for $\mathcal{Q}_m(A, v)$ and an upper Hessenberg matrix $H_m$. We then approximate $\varphi_p(A)v$ by
+$\varphi_p(V_m A_m V_m^*)v$ where $A_m = V_m^* A V_m$. If $\xi_m = \infty$, it could be easily shown from
+\eqref{eq:rationalarnoldifactorization} that $A_m = H_m K_m^{-1}$ where $K_m = I_m + H_m D_m$. with similar arguments
+as in the previous section, we can write the approximation as
+\begin{equation}
+    \label{eq:univariatephifunctionrationalapproximation}
+    \varphi_p(A)v \simeq \left\| v \right\|_{2} V_m \varphi_p(A_m) e_1.
+\end{equation}
+We can exploit Lemma \ref{lem:hhatpowered} and compute $\varphi_p(A_m) e_1$ by reading the first $m$ entries of the
+last column of $\exp(\hat{A}_m)$, with $\hat{A}_m$ defined in \eqref{eq:hhatdefinition} for $H = A_m$.
 
 \subsubsection{Error Estimation}
 The method described in this section could be generalized to any function $f$ that is
@@ -530,7 +600,7 @@ the magnitude of the smallest eigenvalue of the matrix $tA$ scales with $(n+1)$.
 \end{figure}
 
 \subsection{Arnoldi Algorithm}
-The Arnoldi Algorithm described in \autoref{sec:arnoldi} is implemented as in (\autoref{lst:arnoldialgorithm}).
+The Arnoldi Algorithm described in \autoref{sec:arnoldi} is implemented.
 In order to make sure that the implementation is working well, it is applied on the test matrices with different
 dimensions of the Krylov subspace $m$. Each experiment is done once with the re-orthogonalization steps and once
 without it. To evaluate the quality of the outputs, we measure two residuals: 1. the deviation of $V_m^* V_m$ from the
@@ -575,12 +645,12 @@ the performance of the method is not acceptable even for small $m$'s.
 
 \subsection{Approximation of Phi-functions}
 The method described in \autoref{sec:krylovmethodunivariate} is implemented and its approximations have been evaluated
-for different matrices. The implementation is presented in \autoref{lst:krylovmethodunivariate}.
+for different matrices.
 For computing $\exp(\hat{H}_m)$, the \texttt{scipy.linalg.expm} function from the the SciPy library~\cite{SciPy2020}
 is used which implements a Pade approximation with a variable order that is decided based on the array data.
-In order to validate the implementation, we use an implementation of \eqref{eq:matrixphifunctionsclosedform}, presented in
-\autoref{lst:matrixphifunctionsclosedform}, and we look at the relative error of the results from the Krylov subspace
-method of dimension $m$, denoted by $\varphi_p^{(m)}(tA)v$, against the vectors computed by \eqref{eq:matrixphifunctionsclosedform},
+In order to validate the implementation, we use an implementation of \eqref{eq:matrixphifunctionsclosedform}
+and we look at the relative error of the results from the Krylov subspace method of dimension $m$, denoted by
+$\varphi_p^{(m)}(tA)v$, against the vectors computed by \eqref{eq:matrixphifunctionsclosedform},
 denoted by $\varphi_p(tA)v$, for different matrices and for small $p$'s. The relative error is computed as:
 \begin{equation*}
     \frac{\left\| \varphi_p^{(m)}(tA)v - \varphi_p(tA)v \right\|_2}{\left\| \varphi_p(tA)v\right\|_2}.

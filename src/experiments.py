@@ -35,12 +35,12 @@ def check_arnoldi(A: Matrix, v: np.ndarray, ms: list = None, title: str = None) 
         're-orthogonalization': [],
     }
     for m in ms:
-        V_m, H_m = Phi.arnoldi(A=A, v=v, m=m, ro=True)
+        V_m, H_m = Phi.standardarnoldi(A=A, v=v, m=m, ro=True)
         data['m'].append(m)
         data['orthogonality'].append(np.linalg.norm(V_m.conjugate().T @ V_m - np.eye(m, dtype=A.dtype)))
         data['projection'].append(np.linalg.norm(V_m.conjugate().T @ A @ V_m - H_m))
         data['re-orthogonalization'].append(True)
-        V_m, H_m = Phi.arnoldi(A=A, v=v, m=m, ro=False)
+        V_m, H_m = Phi.standardarnoldi(A=A, v=v, m=m, ro=False)
         data['m'].append(m)
         data['orthogonality'].append(np.linalg.norm(V_m.conjugate().T @ V_m - np.eye(m, dtype=A.dtype)))
         data['projection'].append(np.linalg.norm(V_m.conjugate().T @ A @ V_m - H_m))
@@ -77,112 +77,83 @@ def check_arnoldi(A: Matrix, v: np.ndarray, ms: list = None, title: str = None) 
     if title:
         fig.suptitle(title)
 
-def study_approximation_convergence(
+def approximation_convergence(
         A: SparseMatrix,
         v: np.ndarray,
+        m_exact: int,
         ps: list[int] = [0, 1, 2],
         ms: list[int] = [int(m) for m in np.linspace(1, 100, 51)],
-        title: str = None,
-        m_exact: int = None,
-) -> None:
+) -> dict[str, list]:
     """Gets convergence results of the approximation for multiple phi-functions and plots them."""
 
-    dfs = []
+    data = {'p': [], 'm': [], 'method': [], 'err': []}
     for p in ps:
         # Create the phi-function
         phi = Phi(p=p)
 
-        # Get the true evaluation
-        if not m_exact:
-            exact = phi.recursive(A=A, v=v)
-        else:
-            exact = phi.krylovsubspace(A=A, v=v, m=m_exact)
+        # Get the reference evaluations
+        exact_PA = phi.standardkrylov(A=A, v=v, m=m_exact)
+        poles = np.array([-m_exact / (2 ** .5)] * (m_exact-1) + [np.inf])
+        exact_RA = phi.rationalkrylov(A=A, v=v, m=m_exact, poles=poles)
 
         # get the Krylov subspace method approximation
-        errs = []
         for m in ms:
-            krylov = phi.krylovsubspace(A=A, v=v, m=m)
-            errs.append(relative_error(approximation=krylov, exact=exact))
+            # Get polynomial krylov approximation error
+            data['p'].append(p)
+            data['m'].append(m)
+            data['method'].append('PA')
+            krylov = phi.standardkrylov(A=A, v=v, m=m)
+            err = relative_error(approximation=krylov, exact=exact_PA)
+            data['err'].append(err)
 
-        dfs.append(
-            pd.DataFrame({
-                '$p$': [p] * len(ms),
-                '$m$': ms,
-                'Relative error': errs,
-            })
-        )
-
-    # Plot the errors
-    data = pd.concat(objs=dfs, axis=0)
-    sns.relplot(
-        data=data,
-        x='$m$',
-        y='Relative error',
-        hue='$p$',
-        kind='line',
-        height=5,
-        aspect=1.5,
-    )
-    plt.yscale('log')
-    plt.ylim([1e-16, 1e+01])
-    if title:
-        plt.title(title)
-    plt.xlabel('Dimension of the Krylov subspace ($m$)')
-    plt.ylabel('Relative error of $\\varphi_p(tA)v$')
+            # Get rational krylov approximation error
+            data['p'].append(p)
+            data['m'].append(m)
+            data['method'].append('RA')
+            poles = np.array([-m / (2 ** .5)] * (m-1) + [np.inf])
+            krylov = phi.rationalkrylov(A=A, v=v, m=m, poles=poles)
+            err = relative_error(approximation=krylov, exact=exact_RA)
+            data['err'].append(err)
 
     return data
 
-def study_approximation_convergence_with_ro(
-        A: SparseMatrix, v: np.ndarray,
-        ps: list[int] = [1], ms: list = None,
-        m_exact: int = None,
-) -> None:
-    """
-    Plots the convergence of the approximation once with re-orthogonalization and once without it.
-    # NOTE: It did not have any significant difference.
-    """
+def get_bound_taylor(ps: list, ms: list, alpha: float, vnorm: float = 1):
 
-    dfs = []
+    l = len(ms)
+    ms = np.array([int(m) for m in ms])
+    data = {'p': [], 'm': [], 'method': [], 'err': []}
     for p in ps:
-        # Create the phi-function
-        phi = Phi(p=p)
+        bound = (2 * vnorm * (alpha ** ms)
+                / np.array([np.math.factorial(m + p) for m in ms], dtype=np.float64))
+        data['p'].extend([p] * l)
+        data['m'].extend(ms.tolist())
+        data['method'].extend(['PA'] * l)
+        data['err'].extend(bound.tolist())
 
-        # Get the true evaluation
-        if not m_exact:
-            exact = phi.recursive(A=A, v=v)
-        else:
-            exact = phi.krylovsubspace(A=A, v=v, m=m_exact, ro=True)
+    return data
 
-        # get the Krylov subspace method approximation
-        if not ms:
-            ms = [int(m) for m in np.linspace(1, 100, 51)]
+def get_bound_chebyshev(ps: list, ms: list, alpha: float, vnorm: float = 1):
+    """
+    Estimates for p's other than 1 are not valid.
+    """
 
-        for ro in [True, False]:
-            errs = []
-            for m in ms:
-                krylov = phi.krylovsubspace(A=A, v=v, m=m, ro=ro)
-                errs.append(relative_error(approximation=krylov, exact=exact))
-            dfs.append(
-                pd.DataFrame({
-                    '$p$': [p] * len(ms),
-                    '$m$': ms,
-                    'Relative error': errs,
-                    'Re-orthogonalization': ro,
-                })
-            )
+    l = len(ms)
+    ms = np.array(ms)
+    data = {'p': [], 'm': [], 'method': [], 'err': []}
+    for p in ps:
+        bound_i = (
+            vnorm * (5 * (alpha ** 2)) / (ms ** 3)
+            * np.exp(- 4 * (ms ** 2) / (5 * alpha))
+        )
+        bound = (
+            vnorm * 64 / (12 * ms - 5 * alpha)
+            * ((np.e * alpha / (4 * ms + 2 * alpha)) ** ms)
+        )
+        bound[np.where(ms < (alpha / 2))] = bound_i[np.where(ms < (alpha / 2))]
+        # bound[np.where(ms < np.sqrt(alpha))] = np.nan
+        data['p'].extend([p] * l)
+        data['m'].extend(ms.tolist())
+        data['method'].extend(['PA'] * l)
+        data['err'].extend(bound.tolist())
 
-    # Plot the errors
-    data = pd.concat(objs=dfs, axis=0)
-    sns.relplot(
-        data=data,
-        x='$m$',
-        y='Relative error',
-        hue='Re-orthogonalization',
-        col='$p$',
-        col_wrap=2,
-        kind='line',
-        height=5,
-        aspect=1.5,
-    )
-    plt.yscale('log')
-    plt.ylim([1e-17, 1e+01])
+    return data
