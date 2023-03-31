@@ -93,7 +93,7 @@ def approximation_convergence(
 
         # Get the reference evaluations
         exact_PA = phi.standardkrylov(A=A, v=v, m=m_exact)
-        poles = np.array([-m_exact / (2 ** .5)] * (m_exact-1) + [np.inf])
+        poles = np.array([1] * (m_exact-1) + [np.inf])
         exact_RA = phi.rationalkrylov(A=A, v=v, m=m_exact, poles=poles)
 
         # get the Krylov subspace method approximation
@@ -110,7 +110,7 @@ def approximation_convergence(
             data['p'].append(p)
             data['m'].append(m)
             data['method'].append('RA')
-            poles = np.array([-m / (2 ** .5)] * (m-1) + [np.inf])
+            poles = np.array([1] * (m-1) + [np.inf])
             krylov = phi.rationalkrylov(A=A, v=v, m=m, poles=poles)
             err = relative_error(approximation=krylov, exact=exact_RA)
             data['err'].append(err)

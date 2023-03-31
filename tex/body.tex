@@ -363,15 +363,15 @@ $\varphi_p(V_m A_m V_m^*)v$ where $A_m = V_m^* A V_m$. If $\xi_m = \infty$, it c
 \eqref{eq:rationalarnoldifactorization} that $A_m = H_m K_m^{-1}$ where $K_m = I_m + H_m D_m$. with similar arguments
 as in the previous section, we can write the approximation as
 \begin{equation}
-    \label{eq:univariatephifunctionrationalapproximation}
+    \label{eq:rationalkrylovapproximation}
     \varphi_p(A)v \simeq \left\| v \right\|_{2} V_m \varphi_p(A_m) e_1.
 \end{equation}
 We can exploit Lemma \ref{lem:hhatpowered} and compute $\varphi_p(A_m) e_1$ by reading the first $m$ entries of the
 last column of $\exp(\hat{A}_m)$, with $\hat{A}_m$ defined in \eqref{eq:hhatdefinition} for $H = A_m$.
 
 \subsubsection{Error Estimation}
-The method described in this section could be generalized to any function $f$ that is
-analytic on a domain including the eigenvalues of $A$.
+The first method described in this section \autoref{sec:polynomialkrylovapproximation} could be generalized to any
+function $f$ that is analytic on a domain which contains the eigenvalues of $A$.
 
 % NOTE: The result of Theorem 6.5 can be extended to general matrices by replacing [α, β] with the numerical range of A.
 % For details, we refer to the seminal paper [M. Hochbruck and C. Lubich, On Krylov subspace approximations to the matrix
@@ -486,21 +486,16 @@ gives the following theorem for the Arnoldi method approximation of $\varphi_1(A
 \todo[inline]{Summerize the algorithm in \cite{kressner2019krylov}.}
 
 \section{Implementations and Experiments}
+
 In this section, the implementations of the methods described in \autoref{sec:methods} are presented and evaluated.
-% The matrices along with their properties are listed in \autoref{tab:testmatrices}. The first three matrices are
-% stiffness matrices that appear for solving the Poisson's equation with the finite difference method over a uniform
-% grid. \todo{Explain more about the first three matrices.} The rest are collected from \cite{suitesparsecollection}.
-In order to test the methods, we use stiffness matrices that appear in solving the Poisson's equation by the finite
-difference method using a uniform mesh. The matrices are named based on the dimension of the problem and the number
-of interior grid points on each dimension. For instance, \texttt{fd\_2d\_0100} denotes the matrix corresponding to
-the 2D problem and using a mesh with 100 interior grid points on each dimension. These matrices are sparse, real,
-symmetric, and negative definite. They are obtained by
+In order to test the methods, we consider stiffness matrices that appear in solving 1D and 2D Laplace equation by the finite
+difference method using a uniform mesh. These matrices are sparse, real, and symmetric. They are obtained by
 \begin{equation*}
     \begin{aligned}
-        \mathbb{R}^{n \times n} \ni fd_{1d\_n} & = (n+1)^2 K_n,\\
-        \mathbb{R}^{n^2 \times n^2} \ni fd_{2d\_n} & = (n+1)^2  (I_n \otimes K_n + K_n \otimes I_n),\\
-        \mathbb{R}^{n^3 \times n^3} \ni fd_{3d\_n} & = (n+1)^2  (
-            I_n \otimes I_n \otimes K_n + I_n \otimes K_n \otimes I_n+ K_n \otimes I_n \otimes I_n);
+        \mathbb{R}^{n \times n} \ni \hat{A}_{1D} & = (n+1)^2 K_n,\\
+        \mathbb{R}^{n^2 \times n^2} \ni \hat{A}_{2D} & = (n+1)^2  (I_n \otimes K_n + K_n \otimes I_n),\\
+        % \mathbb{R}^{n^3 \times n^3} \ni \hat{A}_{3D} & = (n+1)^2  (
+        %     I_n \otimes I_n \otimes K_n + I_n \otimes K_n \otimes I_n+ K_n \otimes I_n \otimes I_n);
         \end{aligned}
 \end{equation*}
 where $\otimes$ denotes the Kronecker product, $n$ is the number of interior grid points, and $K_n$ is a tridiagonal
@@ -508,38 +503,57 @@ matrix defined as
 \begin{equation*}
     K_n =
     \begin{bmatrix}
-        -2 & 1 & 0 & \cdots & 0 \\
-        1 & -2 & 1 & \ddots & \vdots \\
-        0 & 1 & -2 & \ddots & 0 \\
-        \vdots & \ddots & \ddots & \ddots & 1 \\
-        0 & \cdots & 0 & 1 & -2  \\
+        -2 & 1 &  &  &  \\
+        1 & -2 & 1 &  &  \\
+         & 1 & -2 & \ddots &  \\
+         &  & \ddots & \ddots & 1 \\
+         &  &  & 1 & -2  \\
     \end{bmatrix}.
 \end{equation*}
 
-% NOTE: Smaller relgap -> worse performance of the Arnoldi method for approximating eigenvalues. Is it related?
-\autoref{fig:fdndproperties} shows the smallest eigenvalues and the relative gaps of the matrices corresponding to different
-number of interior grid points $n$. The magnitude of the smallest eigenvalue scales with $(n+1)^2$ and the relative gap
-decreases rapidly when $n$ grows. When computing $\varphi_p(tA)$, the step size is considered as $t = 1 / (n + 1)$, so that
-the magnitude of the smallest eigenvalue of the matrix $tA$ scales with $(n+1)$.
-
-\todo{Add definition of relgap}
-\begin{figure}[h!]
+\begin{figure}[t!]
     \centering
-    \begin{subfigure}[b]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{img/fd_nd_eigvals.png}
-        \caption{Smallest eigenvalues.}
-        \label{fig:fdndeigvals}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{img/fd_nd_relgaps.png}
-        \caption{Relative gaps.}
-        \label{fig:fdndrelgaps}
-    \end{subfigure}
-    \caption{Smallest eigenvalues and relative gaps of the test matrices for different number of grid points.}
-    \label{fig:fdndproperties}
+    \includegraphics[width=.8\textwidth]{img/eigvals.png}
+    \caption{Distribution of eigenvalues of the test matrices with $n=100$ and $\lambda_{min} = -1000$.}
+    \label{fig:eigenvaluedistributions}
 \end{figure}
 
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=.9\textwidth]{img/relgaps.png}
+    \caption{Right and left relative gaps of the test matrices with $\lambda_{min} = -1000$ against their size.}
+    \label{fig:relgaps}
+\end{figure}
+
+Since these matrices could be scaled with different time steps, for instance, and since we are interested in studying
+the effect of different eigenvalue distributions on the same interval, we take $\hat{A}_{1D} \in \mathbb{R}^{n \times n}$
+and $\hat{A}_{2D} \mathbb{R}^{n \times n}$ ($n$ must have an integer square root), and we spectrally scale them so that
+they both have the same spectral interval $[\lambda_{min}, \lambda_{max}]$. We call the resulting matrices $A_1$ and $A_2$,
+respectively. The spectral interval of a matrix is the smallest interval in $\mathbb{R}$ that contains all the eigenvalues
+of the matrix. For Hermitian and real symmetric matrices, this interval coincides with the numerical range of the matrix,
+which is defined for a general square matrix
+$A \in \mathbb{C}^{n \times n}$ as
+\begin{equation}
+    \label{eq:numericalrange}
+    \mathcal{W}(A) = \{x^* A x \:|\: x \in \mathbb{C}^{n \times n} \backslash {0} \}.
+\end{equation}
+Beside these two matrices, we consider three diagonal matrices of size $n \times n$, $A_3$, $A_4$, and $A_5$, with eigenvalues
+distributed on the same interval, $[\lambda_{min}, \lambda_{max}]$. The eigenvalues of $A_3$ are distributed uniformly. The
+eigenvalues of $A_4$ and $A_5$ are distributed geometrically so that they are concentrated on right and left, respectively.
+We always use $\lambda_{max} = -1$ and we test with matrices with different $\lambda_{min}$'s and different sizes.
+\autoref{fig:eigenvaluedistributions} shows the eigenvalues of these matrices with $n=100$ and $\lambda_{min} = -1000$.
+An interesting property of these matrices could be the relative distance between the two smallest and the two largest eigenvalues,
+which we call left and right relative gap, respectively. More formally, if we consider a $n \times n$ matrix $A$ with the
+eigenvalues $\lambda_1 \le \lambda_2 \le \cdots \le \lambda_{n-1} \le \lambda_n$, the left and the right relative gaps are
+defined as
+\begin{equation}
+    \label{eq:relativegaps}
+    \gamma_L = \frac{\lambda_2 - \lambda_1}{\lambda_n - \lambda_1}, \quad
+    \gamma_R = \frac{\lambda_n - \lambda_{n-1}}{\lambda_n - \lambda_1}.
+\end{equation}
+These properties are illustrated for the test matrices in \autoref{fig:relgaps}. Both relative gaps decrease for all the test
+matrices as the matrices grow in size. For large $n$'s, $A_1$ always has the smallest relative gaps on both sides. $A_4$ and
+$A_5$ always have the second place on right and left, respectively. $A_2$ and $A_3$ have moderate relative gaps on both sides.
 
 % NOTE: Old table of test matrices
 \begin{comment}
@@ -572,84 +586,23 @@ the magnitude of the smallest eigenvalue of the matrix $tA$ scales with $(n+1)$.
 \end{table}
 \end{comment}
 
-% NOTE: Daniel said they are a bit unrelated to the topic
-\begin{comment}
 \begin{figure}[h!]
     \centering
-    \begin{subfigure}[b]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{img/arnoldi/fd_1d.png}
-        \caption{\texttt{fd\_1d}.}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{img/arnoldi/fd_3d.png}
-        \caption{\texttt{fd\_3d}.}
-    \end{subfigure}
-    \vfill
-    \begin{subfigure}[b]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{img/arnoldi/bcspwr10.png}
-        \caption{\texttt{bcspwr10}.}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{img/arnoldi/gr_30_30.png}
-        \caption{\texttt{gr\_30\_30}.}
-    \end{subfigure}
-    \caption{Evaluation of the implemented Arnoldi algorithm with different matrices.}
-    \label{fig:arnoldievaluation}
-\end{figure}
-
-\subsection{Arnoldi Algorithm}
-The Arnoldi Algorithm described in \autoref{sec:arnoldi} is implemented.
-In order to make sure that the implementation is working well, it is applied on the test matrices with different
-dimensions of the Krylov subspace $m$. Each experiment is done once with the re-orthogonalization steps and once
-without it. To evaluate the quality of the outputs, we measure two residuals: 1. the deviation of $V_m^* V_m$ from the
-identity matrix $I_m$ to check the orthogonality of the basis vectors; 2. the deviation of the projection of the
-action of $A$ on the Krylov subspace given by $V_m^* A V_m$ from the output $H_m$. For both measures, we report the
-spectral norm of the matrices.
-
-Figure~\ref{fig:arnoldievaluation} depicts the results for four matrices. First of all, we can see that the accuracy
-of the method always deteriorates for higher dimensions of Krylov subspace. However, for almost all the cases, the
-errors are in an acceptable range for up to $m=500$, if re-orthogonalization is applied. This is not the case for the
-matrix \texttt{fd\_3d}, where the errors explode after around $m=200$. Furthermore, we can see that re-orthogonalization
-always improves the accuracy of the method up to several orders of magnitude. By looking at the plots corresponding to \texttt{gr\_30\_30}, we can see that without re-orthogonalization,
-the performance of the method is not acceptable even for small $m$'s.
-\end{comment}
-
-\begin{figure}[h!]
-    \centering
-    \begin{subfigure}[b]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{img/krylovunivariate/fd_1d_0500.png}
-        \caption{\texttt{fd\_1d\_0500}.}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{img/krylovunivariate/fd_1d_4000.png}
-        \caption{\texttt{fd\_1d\_4000}.}
-    \end{subfigure}
-    \vfill
-    \begin{subfigure}[b]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{img/krylovunivariate/fd_2d_0025.png}
-        \caption{\texttt{fd\_2d\_0025}.}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{img/krylovunivariate/fd_2d_0100.png}
-        \caption{\texttt{fd\_2d\_0100}.}
-    \end{subfigure}
-
-    \caption{Convergence of the apprixmation \eqref{eq:univariatephifunctionapproximation} for different matrices.}
-    \label{fig:krylovmethodunivariateevaluation}
+    \includegraphics[width=.9\textwidth]{img/krylovapproximation/cnvg_ps_PA_3600.png}
+    \caption{Convergence of the apprixmation \eqref{eq:univariatephifunctionapproximation} for matrices of size $n=3600$.}
+    \label{fig:polynomialkrylovapproximationevaluation}
 \end{figure}
 
 
 \subsection{Approximation of Phi-functions}
-The method described in \autoref{sec:krylovmethodunivariate} is implemented and its approximations have been evaluated
-for different matrices.
-For computing $\exp(\hat{H}_m)$, the \texttt{scipy.linalg.expm} function from the the SciPy library~\cite{SciPy2020}
-is used which implements a Pade approximation with a variable order that is decided based on the array data.
-In order to validate the implementation, we use an implementation of \eqref{eq:matrixphifunctionsclosedform}
-and we look at the relative error of the results from the Krylov subspace method of dimension $m$, denoted by
+The methods described in \autoref{sec:krylovmethodunivariate} and \autoref{sec:rationalkrylovapproximation}
+are implemented and their approximations have been evaluated for the test matrices. For all the test matrices,
+the approximations are carried out for a normalized random vector $v$.
+For computing $\exp(\hat{H}_m)$ and $\exp(\hat{A}_m)$, the \texttt{scipy.linalg.expm} function from the the
+SciPy library~\cite{SciPy2020} is used which implements a Padé approximation with a variable order that is
+decided based on the array data.
+In order to validate the implementations, we use an implementation of \eqref{eq:matrixphifunctionsclosedform}
+and we look at the relative error of the results from the Krylov subspace methods of dimension $m$, denoted by
 $\varphi_p^{(m)}(tA)v$, against the vectors computed by \eqref{eq:matrixphifunctionsclosedform},
 denoted by $\varphi_p(tA)v$, for different matrices and for small $p$'s. The relative error is computed as:
 \begin{equation*}
@@ -659,17 +612,22 @@ After the implementation is validated, we take the approximations with $m=m^*$ a
 \begin{equation*}
     \frac{\left\| \varphi_p^{(m)}(tA)v - \varphi_p^{(m^*)}(tA)v \right\|_2}{\left\| \varphi_p^{(m^*)}(tA)v\right\|_2}
 \end{equation*}
-for $0 \le p \le 4$. For each matrix, $m^*$ is picked large enough so that the method converges before $m=m^*$.
-The convergence plots are illustrated in \autoref{fig:krylovmethodunivariateevaluation}.
-For all the test matrices, the approximations are carried out for a vector of ones of a suitable size.
+for $0 \le p \le 3$. For each matrix, $m^*$ is picked large enough so that the method converges before $m=m^*$.
+The convergence plots for the polynomial Krylov approximations (\autoref{sec:krylovmethodunivariate}, denoted by
+PA here after) are illustrated in \autoref{fig:polynomialkrylovapproximationevaluation} for $A_1$ and $A_2$ and $n=3600$.
+We observe that the method always converges slightly faster for larger $p$'s and significantly faster for smaller
+$\lambda_{min}$'s. Comparing the convergence of the two matrices, we observe that even when the matrices have the
+same spectral interval, the convergence is much slower for $A_1$. This gives the notion that the distribution of
+the eigenvalues also plays an important role in the convergence of the method.
 
 \begin{remark}
+    \todo{update the figures and the matrix names}
     The reason that the relative errors are not reported against the results of the implementation of
     \eqref{eq:matrixphifunctionsclosedform} is that this implementation seems to work poorly as $p$ increases.
     One reason could be that we need to compute the inverse of $A^p$ for this method. Although computation of the
     inverse is avoided by solving the corresponding system of equations instead, it can still perform poorly because
     the condition number of $A^p$ grows as $p$ is increased. This hypothesis is supported by
-    \autoref{fig:krylovmethodunivariateevaluationrecursive} where the convergence plots are computed against this implementation
+    \autoref{fig:polynomialkrylovapproximationevaluationrecursive} where the convergence plots are computed against this implementation
     for two matrices. We can see that as $p$ is increased, the minimum error that is reached by the approximation gets worse.
     This shows that the approximation is performing better than the implementation of \eqref{eq:matrixphifunctionsclosedform}.
     Furthermore, this pattern is more severe for the matrix \texttt{fd\_1d\_0500} which has a bigger condition number
@@ -689,34 +647,39 @@ For all the test matrices, the approximations are carried out for a vector of on
     \end{subfigure}
     \caption{Convergence of the apprixmation \eqref{eq:univariatephifunctionapproximation} against
     the implementation of \eqref{eq:matrixphifunctionsclosedform} for matrices with mild condition numbers.}
-    \label{fig:krylovmethodunivariateevaluationrecursive}
-\end{figure}
-
-\begin{figure}[h!]
-    \centering
-    \includegraphics[width=.9\textwidth]{img/krylovunivariate/compare_fd_1d_n.png}
-    \caption{Comparison of the convergence rate of the apprixmation \eqref{eq:univariatephifunctionapproximation} for different matrices.}
-    \label{fig:krylovmethodunivariatecomparespectrums}
+    \label{fig:polynomialkrylovapproximationevaluationrecursive}
 \end{figure}
 
 The error estimates given in Lemma \ref{lem:univariateerrorestimationphitaylor} and \autoref{the:univariateerrorestimationchebyshev}
-show that the eigenvalues of the matrix change the rate of convergence of the method. They also show that the starting error
-decreases for larger $p$'s. It could be confirmed by looking at the plots in \autoref{fig:krylovmethodunivariateevaluation} that
-the second interpretation is consistent with the numerical results. \autoref{fig:krylovmethodunivariatecomparespectrums} emphasizes
-on the first interpretation by comparing the convergence of matrices with different spectrums. We can see that the method converges
-faster when the smallest eigenvalue of the matrix is smaller in magnitude and this pattern is consistent for different $p$'s.
+show that the largest magnitude eigenvalue of the matrix change the rate of convergence of the method. They also show that the starting error
+decreases for larger $p$'s. Both interpretation are consistent with our numerical results, as we observe the same patterns in
+\autoref{fig:polynomialkrylovapproximationevaluation}. \autoref{fig:polynomialkrylovapproximationmatrices}, on the other hand, goes
+one step further and compares the convergenece of the matrices with the same spectral interval, thus, same smallest and largest eigenvalues.
+
+With $\lambda_{min} = -1000$, the method converges with almost the same rate for all the matrices, which is the same rate estimated in
+\eqref{eq:univariateerrorestimationphi1}. As $\lambda_{min}$ gets larger in magnitude, we observe that the convergene for the matrices
+$A_2$ and $A_5$ get considerably faster than the other matrices and the error estimate. We recall from \autoref{fig:relgaps} that these
+two matrices have the biggest right relative gap among the test matrices.
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=.9\textwidth]{img/krylovunivariate/compare_errorbounds.png}
-    \caption{
-        Convergence of two matrices against their theoretical error estimates;
-        black: numerical results,
-        green: theoretical error estimate of \autoref{the:univariateerrorestimationchebyshev}.
-        }
-    \label{fig:krylovmethodunivariatecompareerrorestimations}
+    \includegraphics[width=.9\textwidth]{img/krylovapproximation/cnvg_matrices_PA_3600.png}
+    \caption{Convergence of the approximation \eqref{eq:univariatephifunctionapproximation} for $p=1$ with different test
+    matrices of size $n=3600$ and the same spectral interval. The error estimation in \eqref{eq:univariateerrorestimationphi1}
+    is plotted with black.}
+    \label{fig:polynomialkrylovapproximationmatrices}
 \end{figure}
 
-\autoref{fig:krylovmethodunivariatecompareerrorestimations} compares the theoretical error estimate with the numerical
-results for two matrices. We can see that the numerical rate of convergence is consistent with the one from the theoretical
-error estimate.
+\autoref{fig:krylovapproximationmethodscompared} compares the convergence of the rational Krylov approximation method with the
+polynomial Krylov approximation for the matrices $A_1$ and $A_2$. For both matrices, the rational Krylov approximation converges
+significantly faster than the polynomial (standard) Krylov approximation, especially for smaller $\lambda_{min}$'s. Furtheremore,
+the convergenve rate of the rational method does not deteriorate when $\lambda_{min}$ grows in magnitude.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=.9\textwidth]{img/krylovapproximation/cnvg_methods_p3_3600.png}
+    \caption{Convergence of the approximations \eqref{eq:univariatephifunctionapproximation} (PA) and \eqref{eq:rationalkrylovapproximation} (RA)
+    for $p=3$ with different test matrices of size $n=3600$ and the same spectral interval.}
+    \label{fig:krylovapproximationmethodscompared}
+\end{figure}
+

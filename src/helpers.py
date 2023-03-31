@@ -121,7 +121,7 @@ def calculate_relgap(
 
     return relgap_l, relgap_r
 
-def plot_eigenvalues(As: list[SparseMatrix], legends: list[str] = None, range_: tuple = None) -> None:
+def plot_eigenvalues(As: list[SparseMatrix], legends: list[str] = None, xticks: list = None, range_: tuple = None) -> None:
     """Plots the eigenvalues of several matrices."""
 
     fig, ax = plt.subplots(1, 1, figsize=(10, 5))
@@ -133,8 +133,12 @@ def plot_eigenvalues(As: list[SparseMatrix], legends: list[str] = None, range_: 
         xlabel='$\\lambda$',
         yticks=[],
     )
-    if range_: ax.set(xticks = np.linspace(*range_, 5))
-    if legends: ax.legend(loc='right', bbox_to_anchor=(1.15, 0.5))
+    if xticks:
+        ax.set(xticks = xticks)
+    elif range_:
+        ax.set(xticks = np.linspace(*range_, 5))
+    if legends:
+        ax.legend(loc='right', bbox_to_anchor=(1.15, 0.5))
 
 def spectral_scale(A: SparseMatrix, a: float, b: float) -> SparseMatrix:
     """Scales the spectral interval of a Hermitian matrix to a pre-specified domain [a, b]."""
