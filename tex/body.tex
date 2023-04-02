@@ -588,9 +588,19 @@ $A_5$ always have the second place on right and left, respectively. $A_2$ and $A
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=.9\textwidth]{img/krylovapproximation/cnvg_ps_PA_3600.png}
-    \caption{Convergence of the apprixmation \eqref{eq:univariatephifunctionapproximation} for matrices of size $n=3600$.}
-    \label{fig:polynomialkrylovapproximationevaluation}
+    \begin{subfigure}[b]{.9\textwidth}
+        \includegraphics[width=\textwidth]{img/krylovapproximation/cnvg_ps_PA_3600.png}
+        \caption{Polynomial Krylov approximation.}
+        \label{fig:polynomialkrylovapproximationevaluation}
+    \end{subfigure}
+    \vfill
+    \begin{subfigure}[b]{.9\textwidth}
+        \includegraphics[width=\textwidth]{img/krylovapproximation/cnvg_ps_RA_3600.png}
+        \caption{Rational Krylov approximation.}
+        \label{fig:rationalkrylovapproximationevaluation}
+    \end{subfigure}
+    \caption{Convergence of the apprixmations \eqref{eq:univariatephifunctionapproximation} and \eqref{eq:rationalkrylovapproximation} for matrices of size $n=3600$.}
+    \label{fig:krylovapproximationevaluation}
 \end{figure}
 
 
@@ -613,9 +623,9 @@ After the implementation is validated, we take the approximations with $m=m^*$ a
     \frac{\left\| \varphi_p^{(m)}(tA)v - \varphi_p^{(m^*)}(tA)v \right\|_2}{\left\| \varphi_p^{(m^*)}(tA)v\right\|_2}
 \end{equation*}
 for $0 \le p \le 3$. For each matrix, $m^*$ is picked large enough so that the method converges before $m=m^*$.
-The convergence plots for the polynomial Krylov approximations (\autoref{sec:krylovmethodunivariate}, denoted by
-PA here after) are illustrated in \autoref{fig:polynomialkrylovapproximationevaluation} for $A_1$ and $A_2$ and $n=3600$.
-We observe that the method always converges slightly faster for larger $p$'s and significantly faster for smaller
+The convergence plots for the Krylov approximations (\autoref{sec:krylovmethodunivariate} and \autoref{sec:rationalkrylovapproximation})
+are illustrated in \autoref{fig:krylovapproximationevaluation} for $A_1$ and $A_2$ and $n=3600$.
+We observe that the polyonomial Krylov approximation always converges slightly faster for larger $p$'s and significantly faster for smaller
 $\lambda_{min}$'s. Comparing the convergence of the two matrices, we observe that even when the matrices have the
 same spectral interval, the convergence is much slower for $A_1$. This gives the notion that the distribution of
 the eigenvalues also plays an important role in the convergence of the method.
@@ -636,15 +646,7 @@ the eigenvalues also plays an important role in the convergence of the method.
 
 \begin{figure}[h!]
     \centering
-    \begin{subfigure}[b]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{img/krylovunivariate/fd_1d_0500_recursive.png}
-        \caption{\texttt{fd\_1d\_0500}.}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{img/krylovunivariate/fd_2d_0100_recursive.png}
-        \caption{\texttt{fd\_2d\_0100}.}
-    \end{subfigure}
+    % \includegraphics[width=.9\textwidth]{img/krylovunivariate/fd_1d_0500_recursive.png}
     \caption{Convergence of the apprixmation \eqref{eq:univariatephifunctionapproximation} against
     the implementation of \eqref{eq:matrixphifunctionsclosedform} for matrices with mild condition numbers.}
     \label{fig:polynomialkrylovapproximationevaluationrecursive}
@@ -655,19 +657,29 @@ show that the largest magnitude eigenvalue of the matrix change the rate of conv
 decreases for larger $p$'s. Both interpretation are consistent with our numerical results, as we observe the same patterns in
 \autoref{fig:polynomialkrylovapproximationevaluation}. \autoref{fig:polynomialkrylovapproximationmatrices}, on the other hand, goes
 one step further and compares the convergenece of the matrices with the same spectral interval, thus, same smallest and largest eigenvalues.
-
 With $\lambda_{min} = -1000$, the method converges with almost the same rate for all the matrices, which is the same rate estimated in
 \eqref{eq:univariateerrorestimationphi1}. As $\lambda_{min}$ gets larger in magnitude, we observe that the convergene for the matrices
 $A_2$ and $A_5$ get considerably faster than the other matrices and the error estimate. We recall from \autoref{fig:relgaps} that these
-two matrices have the biggest right relative gap among the test matrices.
+two matrices have the biggest right relative gap among the test matrices. \autoref{fig:rationalkrylovapproximationmatrices} shows that
+the convergence of the rational Krylov approximation is less affected by the matrices.
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=.9\textwidth]{img/krylovapproximation/cnvg_matrices_PA_3600.png}
-    \caption{Convergence of the approximation \eqref{eq:univariatephifunctionapproximation} for $p=1$ with different test
-    matrices of size $n=3600$ and the same spectral interval. The error estimation in \eqref{eq:univariateerrorestimationphi1}
-    is plotted with black.}
-    \label{fig:polynomialkrylovapproximationmatrices}
+    \begin{subfigure}[b]{.9\textwidth}
+        \includegraphics[width=\textwidth]{img/krylovapproximation/cnvg_matrices_PA_4900.png}
+        \caption{Polynomial Krylov approximation.}
+        \label{fig:polynomialkrylovapproximationmatrices}
+    \end{subfigure}
+    \vfill
+    \begin{subfigure}[b]{.9\textwidth}
+        \includegraphics[width=\textwidth]{img/krylovapproximation/cnvg_matrices_RA_4900.png}
+        \caption{Rational Krylov approximation.}
+        \label{fig:rationalkrylovapproximationmatrices}
+    \end{subfigure}
+    \caption{Convergence of the approximations \eqref{eq:univariatephifunctionapproximation} and \eqref{eq:rationalkrylovapproximation}
+    for $p=1$ with different test matrices of size $n=4900$ and the same spectral interval. The error estimation in
+    \eqref{eq:univariateerrorestimationphi1} is plotted with black.}
+    \label{fig:krylovapproximationmatrices}
 \end{figure}
 
 \autoref{fig:krylovapproximationmethodscompared} compares the convergence of the rational Krylov approximation method with the
@@ -677,9 +689,17 @@ the convergenve rate of the rational method does not deteriorate when $\lambda_{
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=.9\textwidth]{img/krylovapproximation/cnvg_methods_p3_3600.png}
+    \includegraphics[width=.9\textwidth]{img/krylovapproximation/cnvg_methods_p1_4900.png}
     \caption{Convergence of the approximations \eqref{eq:univariatephifunctionapproximation} (PA) and \eqref{eq:rationalkrylovapproximation} (RA)
-    for $p=3$ with different test matrices of size $n=3600$ and the same spectral interval.}
+    for $p=1$ with different test matrices of size $n=4900$ and the same spectral interval.}
     \label{fig:krylovapproximationmethodscompared}
 \end{figure}
 
+\todo{Comment on this Figure also}
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=.8\textwidth]{img/krylovapproximation/cnvg_sizes_p1_lambda10000.png}
+    \caption{Convergence of the approximations \eqref{eq:univariatephifunctionapproximation} (PA) and \eqref{eq:rationalkrylovapproximation} (RA)
+    for $p=1$ with test matrices of different sizes and $\lambda_{min} = -10000$.}
+    \label{fig:krylovapproximationsizes}
+\end{figure}
