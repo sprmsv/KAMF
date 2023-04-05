@@ -606,8 +606,9 @@ $A_5$ always have the second place on right and left, respectively. $A_2$ and $A
 
 \subsection{Approximation of Phi-functions}
 The methods described in \autoref{sec:krylovmethodunivariate} and \autoref{sec:rationalkrylovapproximation}
-are implemented and their approximations have been evaluated for the test matrices. For all the test matrices,
-the approximations are carried out for a normalized random vector $v$.
+are implemented and their approximations have been evaluated for the test matrices.
+For the latter, the poles are always $\xi_1 = \xi_2 = \cdots = \xi_{m-1} = 1, \: \xi_m = \infty$.
+For all the test matrices, the approximations are carried out for a normalized random vector $v$.
 For computing $\exp(\hat{H}_m)$ and $\exp(\hat{A}_m)$, the \texttt{scipy.linalg.expm} function from the the
 SciPy library~\cite{SciPy2020} is used which implements a Padé approximation with a variable order that is
 decided based on the array data.
@@ -630,40 +631,28 @@ $\lambda_{min}$'s. Comparing the convergence of the two matrices, we observe tha
 same spectral interval, the convergence is much slower for $A_1$. This gives the notion that the distribution of
 the eigenvalues also plays an important role in the convergence of the method.
 
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=.9\textwidth]{img/krylovapproximation/cnvg_ps_PA_4900_recursive.png}
+    \caption{
+        Convergence of the apprixmation \eqref{eq:univariatephifunctionapproximation} against
+        \eqref{alg:exactrecursive} for matrices with size $n=4900$.
+    }
+    \label{fig:polynomialkrylovapproximationevaluationrecursive}
+\end{figure}
+
 \begin{remark}
-    \todo{update the figures and the matrix names}
     The reason that the relative errors are not reported against the results of the implementation of
     \eqref{eq:matrixphifunctionsclosedform} is that this implementation seems to work poorly as $p$ increases.
     One reason could be that we need to compute the inverse of $A^p$ for this method. Although computation of the
     inverse is avoided by solving the corresponding system of equations instead, it can still perform poorly because
-    the condition number of $A^p$ grows as $p$ is increased. This hypothesis is supported by
-    \autoref{fig:polynomialkrylovapproximationevaluationrecursive} where the convergence plots are computed against this implementation
-    for two matrices. We can see that as $p$ is increased, the minimum error that is reached by the approximation gets worse.
-    This shows that the approximation is performing better than the implementation of \eqref{eq:matrixphifunctionsclosedform}.
-    Furthermore, this pattern is more severe for the matrix \texttt{fd\_1d\_0500} which has a bigger condition number
-    than \texttt{fd\_2d\_0100}.
+    the condition number of $A^p$ grows as $p$ is increased.
+    \autoref{fig:polynomialkrylovapproximationevaluationrecursive} illustrates the convergence of the polynomial
+    approximation when compared to \autoref{alg:exactrecursive} \todo{Add the algorithm}. With the recursive implementation, solving a system
+    of equations with $A^p$ on the left-hand-side is avoided and the loss of accuracy is milder.
 \end{remark}
 
-\begin{figure}[h!]
-    \centering
-    % \includegraphics[width=.9\textwidth]{img/krylovunivariate/fd_1d_0500_recursive.png}
-    \caption{Convergence of the apprixmation \eqref{eq:univariatephifunctionapproximation} against
-    the implementation of \eqref{eq:matrixphifunctionsclosedform} for matrices with mild condition numbers.}
-    \label{fig:polynomialkrylovapproximationevaluationrecursive}
-\end{figure}
-
-The error estimates given in Lemma \ref{lem:univariateerrorestimationphitaylor} and \autoref{the:univariateerrorestimationchebyshev}
-show that the largest magnitude eigenvalue of the matrix change the rate of convergence of the method. They also show that the starting error
-decreases for larger $p$'s. Both interpretation are consistent with our numerical results, as we observe the same patterns in
-\autoref{fig:polynomialkrylovapproximationevaluation}. \autoref{fig:polynomialkrylovapproximationmatrices}, on the other hand, goes
-one step further and compares the convergenece of the matrices with the same spectral interval, thus, same smallest and largest eigenvalues.
-With $\lambda_{min} = -1000$, the method converges with almost the same rate for all the matrices, which is the same rate estimated in
-\eqref{eq:univariateerrorestimationphi1}. As $\lambda_{min}$ gets larger in magnitude, we observe that the convergene for the matrices
-$A_2$ and $A_5$ get considerably faster than the other matrices and the error estimate. We recall from \autoref{fig:relgaps} that these
-two matrices have the biggest right relative gap among the test matrices. \autoref{fig:rationalkrylovapproximationmatrices} shows that
-the convergence of the rational Krylov approximation is less affected by the matrices.
-
-\begin{figure}[h!]
+\begin{figure}[h]
     \centering
     \begin{subfigure}[b]{.9\textwidth}
         \includegraphics[width=\textwidth]{img/krylovapproximation/cnvg_matrices_PA_4900.png}
@@ -682,11 +671,6 @@ the convergence of the rational Krylov approximation is less affected by the mat
     \label{fig:krylovapproximationmatrices}
 \end{figure}
 
-\autoref{fig:krylovapproximationmethodscompared} compares the convergence of the rational Krylov approximation method with the
-polynomial Krylov approximation for the matrices $A_1$ and $A_2$. For both matrices, the rational Krylov approximation converges
-significantly faster than the polynomial (standard) Krylov approximation, especially for smaller $\lambda_{min}$'s. Furtheremore,
-the convergenve rate of the rational method does not deteriorate when $\lambda_{min}$ grows in magnitude.
-
 \begin{figure}[h!]
     \centering
     \includegraphics[width=.9\textwidth]{img/krylovapproximation/cnvg_methods_p1_4900.png}
@@ -703,3 +687,19 @@ the convergenve rate of the rational method does not deteriorate when $\lambda_{
     for $p=1$ with test matrices of different sizes and $\lambda_{min} = -10000$.}
     \label{fig:krylovapproximationsizes}
 \end{figure}
+
+The error estimates given in Lemma \ref{lem:univariateerrorestimationphitaylor} and \autoref{the:univariateerrorestimationchebyshev}
+show that the largest magnitude eigenvalue of the matrix change the rate of convergence of the method. They also show that the starting error
+decreases for larger $p$'s. Both interpretation are consistent with our numerical results, as we observe the same patterns in
+\autoref{fig:polynomialkrylovapproximationevaluation}. \autoref{fig:polynomialkrylovapproximationmatrices}, on the other hand, goes
+one step further and compares the convergenece of the matrices with the same spectral interval, thus, same smallest and largest eigenvalues.
+With $\lambda_{min} = -1000$, the method converges with almost the same rate for all the matrices, which is the same rate estimated in
+\eqref{eq:univariateerrorestimationphi1}. As $\lambda_{min}$ gets larger in magnitude, we observe that the convergene for the matrices
+$A_2$ and $A_5$ get considerably faster than the other matrices and the error estimate. We recall from \autoref{fig:relgaps} that these
+two matrices have the biggest right relative gap among the test matrices. \autoref{fig:rationalkrylovapproximationmatrices} shows that
+the convergence of the rational Krylov approximation is less affected by the matrices.
+
+\autoref{fig:krylovapproximationmethodscompared} compares the convergence of the rational Krylov approximation method with the
+polynomial Krylov approximation for the matrices $A_1$ and $A_2$. For both matrices, the rational Krylov approximation converges
+significantly faster than the polynomial (standard) Krylov approximation, especially for smaller $\lambda_{min}$'s. Furtheremore,
+the convergenve rate of the rational method does not deteriorate when $\lambda_{min}$ grows in magnitude.

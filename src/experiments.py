@@ -91,10 +91,12 @@ def approximation_convergence(
         # Create the phi-function
         phi = Phi(p=p)
 
-        # Get the reference evaluations
-        exact_PA = phi.standardkrylov(A=A, v=v, m=m_exact)
-        poles = np.array([1] * (m_exact-1) + [np.inf])
-        exact_RA = phi.rationalkrylov(A=A, v=v, m=m_exact, poles=poles)
+        # Get the reference evaluations  # TMP
+        # exact_PA = phi.standardkrylov(A=A, v=v, m=m_exact)
+        # poles = np.array([1] * (m_exact-1) + [np.inf])
+        # exact_RA = phi.rationalkrylov(A=A, v=v, m=m_exact, poles=poles)
+        exact_PA = phi.recursive(A=A, v=v)
+        exact_RA = exact_PA
 
         # get the Krylov subspace method approximation
         for m in ms:
