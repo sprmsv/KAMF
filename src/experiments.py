@@ -83,6 +83,7 @@ def approximation_convergence(
         m_exact: int,
         ps: list[int] = [0, 1, 2],
         ms: list[int] = [int(m) for m in np.linspace(1, 100, 51)],
+        recursive: bool = False,
 ) -> dict[str, list]:
     """Gets convergence results of the approximation for multiple phi-functions and plots them."""
 
@@ -91,12 +92,14 @@ def approximation_convergence(
         # Create the phi-function
         phi = Phi(p=p)
 
-        # Get the reference evaluations  # TMP
-        # exact_PA = phi.standardkrylov(A=A, v=v, m=m_exact)
-        # poles = np.array([1] * (m_exact-1) + [np.inf])
-        # exact_RA = phi.rationalkrylov(A=A, v=v, m=m_exact, poles=poles)
-        exact_PA = phi.recursive(A=A, v=v)
-        exact_RA = exact_PA
+        # Get the reference evaluations
+        if recursive:
+            exact_PA = phi.recursive(A=A, v=v)
+            exact_RA = exact_PA
+        else:
+            exact_PA = phi.standardkrylov(A=A, v=v, m=m_exact)
+            poles = np.array([1] * (m_exact-1) + [np.inf])
+            exact_RA = phi.rationalkrylov(A=A, v=v, m=m_exact, poles=poles)
 
         # get the Krylov subspace method approximation
         for m in ms:
