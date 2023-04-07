@@ -1,3 +1,5 @@
+from time import process_time
+
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -80,71 +82,80 @@ def check_arnoldi(A: Matrix, v: np.ndarray, ms: list = None, title: str = None) 
 def approximation_convergence(
         A: SparseMatrix,
         v: np.ndarray,
-        m_exact: int,
+        mmax_PA: int,
+        mmax_RA: int,
         ps: list[int] = [0, 1, 2],
-        ms: list[int] = [int(m) for m in np.linspace(1, 100, 51)],
-        recursive: bool = False,
+        nms: int = 30,
 ) -> dict[str, list]:
     """Gets convergence results of the approximation for multiple phi-functions and plots them."""
 
-    data = {'p': [], 'm': [], 'method': [], 'err': []}
+    ms_PA = [int(m) for m in np.linspace(5, mmax_PA, nms)]
+    ms_RA = [int(m) for m in np.linspace(5, mmax_RA, nms)]
+
+    data = {'p': [], 'm': [], 'method': [], 'err': [], 'time': []}
     for p in ps:
         # Create the phi-function
         phi = Phi(p=p)
 
-        # Get the reference evaluations
-        if recursive:
-            exact_PA = phi.recursive(A=A, v=v)
-            exact_RA = exact_PA
-        else:
-            exact_PA = phi.standardkrylov(A=A, v=v, m=m_exact)
-            poles = np.array([1] * (m_exact-1) + [np.inf])
-            exact_RA = phi.rationalkrylov(A=A, v=v, m=m_exact, poles=poles)
+        # Get the reference evaluation
+        data['p'].append(p)
+        data['m'].append(np.nan)
+        data['method'].append('EX')
+        start = process_time()
+        exact = phi.exact(A, v)
+        elapsed = process_time() - start
+        data['err'].append(0)
+        data['time'].append(elapsed)
 
-        # get the Krylov subspace method approximation
-        for m in ms:
-            # Get polynomial krylov approximation error
+        # Get polynomial krylov approximation error
+        for m in ms_PA:
             data['p'].append(p)
             data['m'].append(m)
             data['method'].append('PA')
+            start = process_time()
             krylov = phi.standardkrylov(A=A, v=v, m=m)
-            err = relative_error(approximation=krylov, exact=exact_PA)
+            elapsed = process_time() - start
+            err = relative_error(approximation=krylov, exact=exact)
             data['err'].append(err)
+            data['time'].append(elapsed)
 
-            # Get rational krylov approximation error
+        # Get rational krylov approximation error
+        for m in ms_RA:
             data['p'].append(p)
             data['m'].append(m)
             data['method'].append('RA')
             poles = np.array([1] * (m-1) + [np.inf])
+            start = process_time()
             krylov = phi.rationalkrylov(A=A, v=v, m=m, poles=poles)
-            err = relative_error(approximation=krylov, exact=exact_RA)
+            elapsed = process_time() - start
+            err = relative_error(approximation=krylov, exact=exact)
             data['err'].append(err)
+            data['time'].append(elapsed)
 
     return data
 
-def get_bound_taylor(ps: list, ms: list, alpha: float, vnorm: float = 1):
+def get_bound_taylor(ps: list, mmax: list, nms: int, alpha: float, vnorm: float = 1):
 
-    l = len(ms)
-    ms = np.array([int(m) for m in ms])
-    data = {'p': [], 'm': [], 'method': [], 'err': []}
+    ms = np.array([int(m) for m in np.linspace(5, mmax, nms)])
+    data = {'p': [], 'm': [], 'method': [], 'err': [], 'time': []}
     for p in ps:
         bound = (2 * vnorm * (alpha ** ms)
                 / np.array([np.math.factorial(m + p) for m in ms], dtype=np.float64))
-        data['p'].extend([p] * l)
+        data['p'].extend([p] * nms)
         data['m'].extend(ms.tolist())
-        data['method'].extend(['PA'] * l)
+        data['method'].extend(['PA'] * nms)
         data['err'].extend(bound.tolist())
+        data['time'].extend([0] * nms)
 
     return data
 
-def get_bound_chebyshev(ps: list, ms: list, alpha: float, vnorm: float = 1):
+def get_bound_chebyshev(ps: list, mmax: list, nms: int, alpha: float, vnorm: float = 1):
     """
     Estimates for p's other than 1 are not valid.
     """
 
-    l = len(ms)
-    ms = np.array(ms)
-    data = {'p': [], 'm': [], 'method': [], 'err': []}
+    ms = np.array([int(m) for m in np.linspace(5, mmax, nms)])
+    data = {'p': [], 'm': [], 'method': [], 'err': [], 'time': []}
     for p in ps:
         bound_i = (
             vnorm * (5 * (alpha ** 2)) / (ms ** 3)
@@ -156,9 +167,10 @@ def get_bound_chebyshev(ps: list, ms: list, alpha: float, vnorm: float = 1):
         )
         bound[np.where(ms < (alpha / 2))] = bound_i[np.where(ms < (alpha / 2))]
         # bound[np.where(ms < np.sqrt(alpha))] = np.nan
-        data['p'].extend([p] * l)
+        data['p'].extend([p] * nms)
         data['m'].extend(ms.tolist())
-        data['method'].extend(['PA'] * l)
+        data['method'].extend(['PA'] * nms)
         data['err'].extend(bound.tolist())
+        data['time'].extend([0] * nms)
 
     return data

@@ -21,8 +21,38 @@ class Phi:
 
         return phi_z
 
+    def exact(self, A: SparseMatrix, v: np.ndarray) -> np.ndarray:
+        """Computes the exact action of the phi-function on a vector by building the corresponding embedded matrix."""
+
+        # Check dimensions
+        n = len(v)
+        dtype = A.dtype
+        assert A.shape == (n, n), f'{A.shape} != {(n, n)}'
+
+        # Get p
+        p = self.p
+
+        # Construct the embedded matrix
+        if p == 0:
+            return spla.expm_multiply(A, v)
+        else:
+            A_h = sps.lil_matrix(np.zeros(shape=(n+p, n+p), dtype=dtype))
+            A_h[:n, :n] = A
+            A_h[:n, n] = v
+            A_h[n:n+p-1, n+1:n+p] = sps.identity(p-1, dtype=dtype, format=A_h.format)
+            if A.format == 'csc':
+                A_h = A_h.tocsc()
+            elif A.format == 'csr':
+                A_h = A_h.tocsr()
+
+            # Compute the last column of the exponential of the embedded matrix
+            enpp = np.zeros(shape=(n+p,), dtype=dtype)
+            enpp[-1] = 1
+            return spla.expm_multiply(A_h, enpp)[:n]
+
+    # NOTE: Loses accuracy as p grows
     def recursive(self, A: SparseMatrix, v: np.ndarray) -> np.ndarray:
-        """Computes the action of the matrix function on a vector using the recurrence relation."""
+        """Computes the action of the phi-function on a vector using the recurrence relation."""
 
         # Check the type of A
         if not sps.issparse(A):
@@ -35,7 +65,6 @@ class Phi:
         """Computes the action of the matrix function on a vector using the recurrence relation."""
 
         if p == 0:
-            # return spla.expm(A) @ v
             return spla.expm_multiply(A, v)
         else:
             t1 = spla.spsolve(A=A, b=Phi._recursive(A=A, v=v, p=p-1))
