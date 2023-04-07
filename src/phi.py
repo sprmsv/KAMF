@@ -13,7 +13,7 @@ class Phi:
         assert isinstance(p, int)
         self.p = p
 
-    def scalar(self, z: float) -> float:
+    def scalar(self, z: complex) -> complex:
         """Computes the scalar function using the recurrence relation."""
 
         res = np.sum([(1 / np.math.factorial(l)) * (z ** l) for l in range(self.p)], axis=0)

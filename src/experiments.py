@@ -139,8 +139,11 @@ def get_bound_taylor(ps: list, mmax: list, nms: int, alpha: float, vnorm: float 
     ms = np.array([int(m) for m in np.linspace(5, mmax, nms)])
     data = {'p': [], 'm': [], 'method': [], 'err': [], 'time': []}
     for p in ps:
-        bound = (2 * vnorm * (alpha ** ms)
-                / np.array([np.math.factorial(m + p) for m in ms], dtype=np.float64))
+        mpps = np.ones(shape=(ms.max() + p, len(ms)), dtype=ms.dtype)
+        for j, m in enumerate(ms):
+            mpps[:(m + p), j] = np.arange(1, m + p + 1, dtype=ms.dtype)
+        logfrac = ms * np.log(alpha) - np.sum(np.log(mpps), axis=0)
+        bound = 2 * vnorm * np.exp(logfrac)
         data['p'].extend([p] * nms)
         data['m'].extend(ms.tolist())
         data['method'].extend(['PA'] * nms)

@@ -1,16 +1,17 @@
 \section{Introduction}
 
 % Guttel: Matrix functions are interesting for scientific computing because they arise in explicit so- lution formulas for relevant algebraic and differential equations.
-\todo[inline]{Add motivation and applications (exponential integrators, etc.)}
+\todo{Add motivation and applications (exponential integrators, etc.)}
 
 \subsection{Univariate Matrix Functions}
-This section reviews the basic definition and properties of matrix functions discussed in detail in
-\cite{higham2008functions}.
-Let $A \in \mathbb{C}^{n \times n}$ have $s$ distinct eigenvalues $\{\lambda_i\}_{i=1}^{s}$. A can be
-expressed in the Jordan canonical form as $A = ZJZ^{-1} = Z \diag(J_1, J_2, \dots, J_K) Z^{-1}$. Let
-$ind_{\lambda_i}(A)$ denote the size of the largest Jordan block associated with $\lambda_i$. The matrix
-function associated with a univariate function $f$ is defined by $f(A) := g(A)$, where $g(z)$ is the unique
-Hermite interpolating polynomial of degree less than $\sum_{i=1}^{s}{ind_{\lambda_i}(A)}$. $g(z)$ which
+This section reviews the basic definition and properties of matrix functions
+discussed in detail in \cite{higham2008functions}.
+Let $A \in \mathbb{C}^{n \times n}$ have $s$ distinct eigenvalues $\{\lambda_i\}_{i=1}^{s}$.
+$A$ can be expressed in the Jordan canonical form as $A = ZJZ^{-1} = Z \diag(J_1, J_2, \dots, J_K)
+Z^{-1}$. Let $ind_{\lambda_i}(A)$ denote the size of the largest Jordan block associated
+with $\lambda_i$. The matrix function associated with a univariate function $f$
+is defined by $f(A) := g(A)$, where $g(z)$ is the unique Hermite interpolating
+polynomial of degree less than $\sum_{i=1}^{s}{ind_{\lambda_i}(A)}$. $g(z)$ which
 satisfies
 \begin{equation}
     \frac{\partial^j}{\partial z^j}g(\lambda_i) = \frac{\partial^j}{\partial z^j}f(\lambda_i),
@@ -18,7 +19,7 @@ satisfies
     \quad \forall i \in \{1, 2, \dots, s\},
 \end{equation}
 assuming that all required derivatives of $f(z)$ exist.
-\todo[inline]{Add the Cauchy integral definition.}
+\todo[color=cyan]{Add the Cauchy integral definition.}
 
 It can be shown that if $A = \diag(\lambda_i)_{i=1}^{n}$ is diagonal, we have
 \begin{equation}
@@ -41,41 +42,35 @@ we can write
 \end{equation}
 
 \subsubsection*{Matrix Exponential}
-The matrix function attributed to the scalar exponential function is called matrix exponential and
-is defined~\cite{higham2008functions} as
+The matrix function attributed to the scalar exponential function is called
+matrix exponential and is defined~\cite{higham2008functions} as
 \begin{equation}
     \label{eq:matrixexponentialdefinition}
     \exp(A) = \sum_{k=0}^{\infty}{\frac{1}{k!} A^k}.
 \end{equation}
 
-\todo{Summerize the properties.}
-By taking the conjugate transpose of \eqref{eq:matrixexponentialdefinition}, we conclude
-\begin{equation}
-    \exp(A^{*}) = \exp(A)^{*}.
-\end{equation}
+Some properties of the matrix exponential follows:
+\begin{itemize}
+    \item By taking the conjugate transpose of \eqref{eq:matrixexponentialdefinition},
+        we can conclude $\exp(A^{*}) = \exp(A)^{*}$.
+    \item For every $B \in \mathbb{C}^{n \times n}$ that satisfies $AB = BA$,
+        we have $\exp(A + B) = \exp(A) \exp(B)$.
+    \item $\exp(A)$ is always invertible and its inverse is $\exp(A)^{-1} = \exp(-A)$.
+    \item The derivative of $\exp(tA)$ with respect to a scalar $t$ is given by
+        $\frac{\mathrm{d}}{\mathrm{d} t} (\exp(tA)) = A \exp(tA)$.
+    \item The determinant of $\exp(A)$ is the exponential of the trace of
+        $A$: $\det(\exp(A)) = \exp(\trace(A))$.
+\end{itemize}
 
-For every $B \in \mathbb{C}^{n \times n}$ that satisfies $AB = BA$, we have
-\begin{equation}
-    \exp(A + B) = \exp(A) \exp(B).
-\end{equation}
-
-$\exp(A)$ is always invertible and its inverse is
-\begin{equation}
-    \exp(A)^{-1} = \exp(-A).
-\end{equation}
-
-The derivative of $\exp(tA)$ with respect to a scalar $t$ is given by
-\begin{equation}
-    \frac{\mathrm{d} \exp(tA)}{\mathrm{d} t} = A \exp(tA).
-\end{equation}
-
-The determinant of $\exp(A)$ is the exponential of the trace of $A$,
-\begin{equation}
-    \det(\exp(A)) = \exp(\trace(A)).
-\end{equation}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=.7\textwidth]{img/scalarcomplexplane.png}
+    \caption{Evaluation of scalar $\varphi$-functions on the complex plane.}
+    \label{fig:scalarphifunctionscomplexplane}
+\end{figure}
 
 \subsection{\texorpdfstring{$\varphi$}{Phi}-functions}
-\todo[inline]{Add applications and motivation.}
+\todo[color=cyan]{Add applications and motivation.}
 There are a group of matrix functions called $\varphi$-functions that are essential
 for exponential integrators for ordinary differential equations. Accurate and efficient
 evaluation of these functions is necessary for implementation of exponential integrators.
@@ -93,6 +88,9 @@ The $\varphi$-functions satisfy~\cite{higham2008functions} the recurrence relati
     \varphi_p(z) = z^{-1} \left[ \varphi_{p-1}(z) - \frac{1}{(p-1)!} \right] ,
     \quad p \in \mathbb{N^*} \:, z \neq 0 .
 \end{equation}
+
+The evaluation of the first three scalar $\varphi$-functions on the complex plane
+is illustrated in \autoref{fig:scalarphifunctionscomplexplane}.
 
 We can use \eqref{eq:scalarphifunctionsrecurrence} recursively as
 \begin{equation*}
@@ -112,11 +110,12 @@ to derive a closed form for $\varphi_p$:
 \end{equation}
 
 % CHECK: What if A is singular?
-For an invertible matrix $A \in \mathbb{C}^{n \times n}$, we can do the same steps and use \eqref{eq:matrixexponentialdefinition}
-to get
+For an invertible matrix $A \in \mathbb{C}^{n \times n}$, we can do the same steps
+and use \eqref{eq:matrixexponentialdefinition} to get
 \begin{equation}
     \label{eq:matrixphifunctionsclosedform}
-    \varphi_p(A) = A^{-p} \left( \exp(A) - \sum_{k=0}^{p-1}{\frac{1}{k!}A^{k}} \right) = \sum_{k=0}^{\infty}{\frac{1}{(k+p)!} A^{k}}.
+    \varphi_p(A) = A^{-p} \left( \exp(A) - \sum_{k=0}^{p-1}{\frac{1}{k!}A^{k}} \right)
+    = \sum_{k=0}^{\infty}{\frac{1}{(k+p)!} A^{k}}.
 \end{equation}
 
 \subsection{Bivariate Matrix Functions}
@@ -129,10 +128,10 @@ is defined~\cite{kressner2014bivariate} by
     \sum_{i=1}^{s} \sum_{j=1}^{t} p_{ij} A^i C (B^\top)^j.
 \end{equation}
 
-The bivariate matrix function associated with a general bivariate scalar function $f(x, y)$ is a linear
-operator on $\mathbb{C}^{n \times m}$ and is defined~\cite{kressner2014bivariate} by
-$f\{A, B\} := p\{A, B\}$, where $p$ is the unique Hermite interpolating polynomial which
-satisfies
+The bivariate matrix function associated with a general bivariate scalar function
+$f(x, y)$ is a linear operator on $\mathbb{C}^{n \times m}$ and is
+defined~\cite{kressner2014bivariate} by $f\{A, B\} := p\{A, B\}$, where $p$ is the
+unique Hermite interpolating polynomial which satisfies
 \begin{equation*}
     \frac{\partial^{g+h}}{\partial x^g y^h}g(\lambda_i, \mu_j)
     = \frac{\partial^{g+h}}{\partial x^g y^h}f(\lambda_i, \mu_j),
@@ -145,13 +144,14 @@ satisfies
         & \forall j \in \{1, 2, \dots, t\}.
     \end{matrix}
 \end{equation*}
-$f$ only exists if the mixed partial derivatives in the definition exist and are continuous.
+$f$ only exists if the mixed partial derivatives in the definition exist and
+are continuous.
 
 \section{Methodology}\label{sec:methods}
 
 \subsection{Krylov Subspaces and the Arnoldi Algorithm}\label{sec:arnoldi}
-Given a matrix $A \in \mathbb{C}^{n \times n}$ and a vector $v \neq 0 \in \mathbb{C}$, the Krylov subspace of order
-$m \leq n$ for them is defined \cite{golub2013matrix} as
+Given a matrix $A \in \mathbb{C}^{n \times n}$ and a vector $v \neq 0 \in \mathbb{C}$,
+the Krylov subspace of order $m \leq n$ for them is defined \cite{golub2013matrix} as
 \begin{equation}
     \label{eq:krylovsubspacedefinition}
     \begin{aligned}
@@ -160,12 +160,14 @@ $m \leq n$ for them is defined \cite{golub2013matrix} as
     \end{aligned}
 \end{equation}
 where $\Pi_{m-1}$ is the set of all polynomials of order up to $m-1$.
-Krylov supspaces are essential in many methods in numerical linear algebra for solving eigenvalue problems.
-However, the vectors $v, Av, A^{2}v, \dots, A^{m-1}v$ are not a good basis for $\mathcal{K}_m(A, v)$. We
-know from the power method that these vectors have almost the same direction and converge to the eigenvector
-paired with the biggest eigenvalue of $A$. From the Arnoldi algorithm \cite{trefethen1997numerical} described in
-Algorithm \ref{alg:polynomialarnoldi}, we can get an orthonormal basis for $\mathcal{K}_m(A, v)$ and an upper Hessenberg
-matrix $H_m = V_m^* A V_m$. The Arnoldi factorization reads
+Krylov supspaces are essential in many methods in numerical linear algebra
+for solving eigenvalue problems. However, the vectors $v, Av, A^{2}v, \dots, A^{m-1}v$
+are not a good basis for $\mathcal{K}_m(A, v)$. We know from the power method that
+these vectors have almost the same direction and converge to the eigenvector paired
+with the biggest eigenvalue of $A$.
+From the Arnoldi algorithm \cite{trefethen1997numerical} described in Algorithm
+\ref{alg:polynomialarnoldi}, we can get an orthonormal basis for $\mathcal{K}_m(A, v)$
+and an upper Hessenberg matrix $H_m = V_m^* A V_m$. The Arnoldi factorization reads
 \begin{equation}
     \label{eq:arnoldifactorization}
     A V_m = V_m H_m + h_{m+1, m} v_{m+1} e_m^\top,
@@ -194,7 +196,8 @@ where $e_m$ is the last standard basis vector of $\mathbb{R}^{m}$.
             }
         \end{algorithm}
 
-Similarly, the rational Krylov subspace \cite{guttel2013rational} associated with the matrix $A$ and the vector $v$ with non-zero poles
+Similarly, the rational Krylov subspace \cite{guttel2013rational} associated with
+the matrix $A$ and the vector $v$ with non-zero poles
 $\xi_1, \xi_2, \dots, \xi_m \in \overline{\mathbb{C}} := \mathbb{C} \cup \{ \infty\}$ different than all eigenvalues of $A$, is defined as
 \begin{equation}
     \label{eq:rationalkrylovsubspacedefinition}
@@ -208,21 +211,21 @@ where $g / q_{m-1}$ is a rational function with a prescribed denominator
     \Pi_{m-1} \ni q_{m-1}(z) = \prod_{j=1}^{m-1}(1 - z / \xi_j).
 \end{equation*}
 
-Algorithm \ref{alg:polynomialarnoldi} could be slightly modified to get an orthonormal basis for $\mathcal{Q}_m(A, v)$. In line 4, instead
-of $w = A v_j$ we set $w = (I - A / \xi_j)^{-1} A v_j$. The rational Arnoldi factorization reads
+Algorithm \ref{alg:polynomialarnoldi} could be slightly modified to get an orthonormal
+basis for $\mathcal{Q}_m(A, v)$. In line 4, instead of $w = A v_j$ we set
+$w = (I - A / \xi_j)^{-1} A v_j$. The rational Arnoldi factorization reads
 \begin{equation}
     \label{eq:rationalarnoldifactorization}
     A V_m (I_m + H_m D_m) + A h_{m+1, m} v_{m+1} \xi_m^{-1} e_m^\top = V_m H_m + h_{m+1, m} v_{m+1} e_m^\top.,
 \end{equation}
 where $D_m = \diag(\xi_1^{-1}, \dots, \xi_m^{-1})$.
 
-\subsection{Approximation of \texorpdfstring{$\varphi$}{Phi}-functions}\label{sec:krylovmethodunivariate}
-
-\subsubsection{Polynomial Krylov approximation}
+\subsection{Polynomial Krylov approximation}
 \label{sec:polynomialkrylovapproximation}
-In order to evaluate $\varphi_p(A)v$ for a matrix $A \in \mathbb{C}^{n \times n}$ and a vector $v \in \mathbb{C}$,
-we do the Arnoldi algorithm to get an orthonormal basis $V_m \in \mathbb{C}^{n \times m}$
-for $\mathcal{K}_m(A, v)$ and the projection of the action of $A$ on this Krylov subspace $H_m = V_m^* A V_m$.
+In order to evaluate $\varphi_p(A)v$ for a matrix $A \in \mathbb{C}^{n \times n}$
+and a vector $v \in \mathbb{C}^n$, we do the steps in the Arnoldi algorithm to get
+an orthonormal basis $V_m \in \mathbb{C}^{n \times m}$ for $\mathcal{K}_m(A, v)$ and
+the projection of the action of $A$ on this Krylov subspace $H_m = V_m^* A V_m$.
 
 \begin{lemma}
     \label{lem:krylovsubspacepowered}
@@ -233,40 +236,45 @@ for $\mathcal{K}_m(A, v)$ and the projection of the action of $A$ on this Krylov
 \end{lemma}
 
 \begin{proof}
-    For $k=0$, it reads $V_m V_m^* v = v$ which is true because $v \in \mathcal{K}_m$ and $V_m V_m^*$
-    is the projection matrix of $\mathcal{K}_m$. For $k \ge 1$, we prove by induction. Assuming that
-    the lemma holds true for $k-1$, we can write
+    For $k=0$, it reads $V_m V_m^* v = v$ which is true because $v \in \mathcal{K}_m$
+    and $V_m V_m^*$ is the projection matrix of $\mathcal{K}_m$.
+    For $k \ge 1$, we prove by induction. Assuming that the lemma holds true for
+    $k-1$, we can write
     \begin{equation*}
         A^{k} v = A A^{k-1} v = A V_m H_m^{k-1} V_m^* v.
     \end{equation*}
-    Since $A^{k} v \in \mathcal{K}_m$ for all $1 \le k \le m-1$, projecting it on $\mathcal{K}_m$ will result in the same vector,
-    thus
+    Since $A^{k} v \in \mathcal{K}_m$ for all $1 \le k \le m-1$, projecting it on
+    $\mathcal{K}_m$ will result in the same vector, thus
     \begin{equation*}
         A^{k} v = V_m V_m^* A^{k} v = V_m \underset{H_m}{\underbrace{V_m^* A V_m}} H_m^{k-1} V_m^* v,
     \end{equation*}
     which completes the proof.
 \end{proof}
 
-We approximate $\varphi_p(A)v$ by $\varphi_p(V_m H_m V_m^*)v$. Beacuse of orthogonality of the columns of $V_m$,
-we can conclude that for any $k \in \mathbb{N}$,
+We approximate $\varphi_p(A)v$ by $\varphi_p(V_m H_m V_m^*)v$. Beacuse of orthogonality
+of the columns of $V_m$, we can conclude that for any $k \in \mathbb{N}$,
 \begin{equation*}
     \label{eq:reprojectionpower}
     (V_m H_m V_m^*)^{k} = V_m H_m^k V_m^*,
 \end{equation*}
-
-which could be used alongside with \eqref{eq:matrixphifunctionsclosedform} to conclude that $\varphi_p(V_m H_m V_m^*)v = V_m \varphi_p(H_m) V_m^* v$.
-Because all columns of $V_m$ except the first one are orthogonal to $v$, we have $V_m^* v = \left\| v \right\|_{2} e_1$,
-where $e_1$ is the first vector in the standard basis of $\mathbb{R}^n$. Putting all the pieces together, the approximation could be written as
+which could be used alongside with \eqref{eq:matrixphifunctionsclosedform} to conclude
+that $\varphi_p(V_m H_m V_m^*)v = V_m \varphi_p(H_m) V_m^* v$.
+Because all columns of $V_m$ except the first one are orthogonal to $v$, we have
+$V_m^* v = \left\| v \right\|_{2} e_1$, where $e_1$ is the first vector in the
+standard basis of $\mathbb{R}^n$.
+Putting all the pieces together, the approximation could be written as
 \begin{equation}
     \label{eq:univariatephifunctionapproximation}
     \varphi_p(A)v \simeq \left\| v \right\|_{2} V_m \varphi_p(H_m) e_1.
 \end{equation}
-With this approximation, instead of evaluating the $\varphi$-function for a $n \times n$ matrix,
-we just need to evaluate it for $H_m$ which is much smaller than $A$.
+With this approximation, instead of evaluating the $\varphi$-function for
+a $n \times n$ matrix, we just need to evaluate it for $H_m$ which is much
+smaller than $A$.
 
 \begin{corollary}
     \label{cor:univariateerrorestimationpolynomial}
-    For all $\Pi_{m-1} \ni g(z) = \sum_{k=0}^{m-1}{\alpha_k} z^k$, the approximation in \eqref{eq:univariatephifunctionapproximation} is exact;
+    For all $\Pi_{m-1} \ni g(z) = \sum_{k=0}^{m-1}{\alpha_k} z^k$, the approximation
+    in \eqref{eq:univariatephifunctionapproximation} is exact;
     where $\Pi_{m-1}$ is the set of all polynomials of degree up to $m-1$.
     This can be shown using the definition of $g$ and Lemma \ref{lem:krylovsubspacepowered}:
     \begin{equation*}
@@ -281,115 +289,122 @@ we just need to evaluate it for $H_m$ which is much smaller than $A$.
 \end{corollary}
 
 \begin{lemma}
-    \label{lem:hhatpowered}
-    Consider a matrix $H \in \mathbb{C}^{m \times m}$.
-    If we construct a matrix $\hat{H} \in \mathbb{C}^{(m+p) \times (m+p)}$ as
+    \label{lem:embeddedmatrixpowered}
+    Consider a matrix-vector pair $(A, v)$ with $A \in \mathbb{C}^{n \times n}$
+    and $v \in \mathbb{C}^n$.
+    If we construct a matrix $\hat{A} \in \mathbb{C}^{(n+p) \times (n+p)}$ as
     \begin{equation}
-        \label{eq:hhatdefinition}
-        \hat{H} =
+        \label{eq:embeddedmatrixdefinition}
+        \hat{A} =
         \begin{bmatrix}
-            H & e_1 & 0       \\
+            A & v & 0       \\
             0   & 0   & I_{p-1} \\
             0   & 0   & 0
         \end{bmatrix}
-        \begin{matrix} m \\ p-1 \\ 1 \end{matrix}
+        \begin{matrix} n \\ p-1 \\ 1 \end{matrix}
         \begin{matrix} \quad \text{rows} \\ \quad \text{row(s)} \\ \quad \text{row} \end{matrix}
         \: ,
     \end{equation}
-    with $p \ge 1$, the last column of $\hat{H}^k$, denoted by $(\hat{H}^k)_{[:, m+p]} \in \mathbb{C}^{m+p}$ takes the form
+    with $p \ge 1$, the last column of $\hat{A}^k$, denoted by $(\hat{A}^k)_{[:, n+p]}
+    \in \mathbb{C}^{n+p}$ takes the form
     \begin{equation*}
-        \label{eq:hhatpowered}
-        (\hat{H}^k)_{[:, m+p]} =
+        \label{eq:embeddedmatrixpowered}
+        (\hat{A}^k)_{[:, n+p]} =
         \begin{cases}
             \begin{bmatrix} 0 \\ e_{p-k} \\ 0 \end{bmatrix}
-            \begin{matrix} m \\ p-1 \\ 1 \end{matrix}
+            \begin{matrix} n \\ p-1 \\ 1 \end{matrix}
             \; \begin{matrix} \text{rows} \\ \text{row(s)} \\ \text{row} \end{matrix},
             & k \in \{ 1, 2, \dots, p-1 \}
             \\
-            \begin{bmatrix} H^{k-p} e_1 \\ 0 \\ 0 \end{bmatrix}
-            \begin{matrix} m \\ p-1 \\ 1 \end{matrix}
+            \begin{bmatrix} A^{k-p} v \\ 0 \\ 0 \end{bmatrix}
+            \begin{matrix} n \\ p-1 \\ 1 \end{matrix}
             \; \begin{matrix} \text{rows} \\ \text{rows} \\ \text{rows} \end{matrix},
             & k \ge p
-        \end{cases}.
+        \end{cases},
     \end{equation*}
+    where $e_{p-k}$ is the $p-k$\textsuperscript{th} standard basis vector of $\mathbb{R}^{p-1}$.
 \end{lemma}
 \begin{proof}
-    For $k=1$, the lemma holds by definition. For $k \ge 2$, we now show that assuming that it holds for $k-1$, it is also
-    true for $k$. Since $\hat{H}^k = \hat{H} \hat{H}^{k-1}$, we can get the $m+p$\textsuperscript{th} column
-    of $\hat{H}^k$, denoted by $(\hat{H}^k)_{[:, m+p]}$, by multiplying only the $m+p$\textsuperscript{th}
-    column of $\hat{H}^{k-1}$. For $p-1 \ge k \ge 2$ we have
+    For $k=1$, the lemma holds by definition. For $k \ge 2$, we now show that assuming
+    that it holds for $k-1$, it is also true for $k$.
+    Since $\hat{A}^k = \hat{A} \hat{A}^{k-1}$, we can get the $n+p$\textsuperscript{th}
+    column of $\hat{A}^k$, denoted by $(\hat{A}^k)_{[:, n+p]}$, by multiplying only
+    the $n+p$\textsuperscript{th} column of $\hat{A}^{k-1}$.
+    For $p-1 \ge k \ge 2$ we have
     \begin{equation*}
         \begin{aligned}
-            (\hat{H}^k)_{[:, m+p]} & = \hat{H} (\hat{H}^{k-1})_{[:, m+p]} \\
+            (\hat{A}^k)_{[:, n+p]} & = \hat{A} (\hat{A}^{k-1})_{[:, n+p]} \\
             & =
-            \begin{bmatrix} H & e_1 & 0\\ 0 & 0 & I_{p-1}\\ 0 & 0 & 0 \end{bmatrix}
+            \begin{bmatrix} A & v & 0\\ 0 & 0 & I_{p-1}\\ 0 & 0 & 0 \end{bmatrix}
             \begin{bmatrix} 0 \\ e_{p-k+1} \\ 0 \end{bmatrix}
             =
             \begin{bmatrix} 0 \\ e_{p-k} \\ 0 \end{bmatrix}
         \end{aligned}.
     \end{equation*}
-    After each multiplication, we get the previous column of $\hat{H}$ until we reach the $m+1$\textsuperscript{th} column
-    for $k=p$, $(\hat{H}^p)_{[:, m+p]} = \begin{bmatrix}e_1^\top & 0 & 0\end{bmatrix}^\top$, which is consistent with \eqref{eq:hhatpowered}.
+    After each multiplication, we get the previous column of $\hat{A}$ until we reach
+    the $n+1$\textsuperscript{th} column for $k=p$,
+    $(\hat{A}^p)_{[:, n+p]} = \begin{bmatrix}e_1^\top & 0 & 0\end{bmatrix}^\top$,
+    which is consistent with \eqref{eq:embeddedmatrixpowered}.
     With this, for $k \ge p+1$ we have
     \begin{equation*}
         \begin{aligned}
-            (\hat{H}^k)_{[:, m+p]} & = \hat{H} (\hat{H}^{k-1})_{[:, m+p]} \\
+            (\hat{A}^k)_{[:, n+p]} & = \hat{A} (\hat{A}^{k-1})_{[:, n+p]} \\
             & =
-            \begin{bmatrix} H & e_1 & 0\\ 0 & 0 & I_{p-1}\\ 0 & 0 & 0 \end{bmatrix}
-            \begin{bmatrix} H^{k-1-p} e_1 \\ 0 \\ 0 \end{bmatrix}
+            \begin{bmatrix} A & v & 0\\ 0 & 0 & I_{p-1}\\ 0 & 0 & 0 \end{bmatrix}
+            \begin{bmatrix} A^{k-1-p} v \\ 0 \\ 0 \end{bmatrix}
             =
-            \begin{bmatrix} H^{k-p} e_1 \\ 0 \\ 0 \end{bmatrix}
+            \begin{bmatrix} A^{k-p} v \\ 0 \\ 0 \end{bmatrix}
         \end{aligned}.
     \end{equation*}
 \end{proof}
 
+\begin{corollary}
+    \label{cor:embeddedmatrixexponential}
+    For a matrix-vector pair $(A, v)$ with $A \in \mathbb{C}^{n \times n}$ and
+    $v \in \mathbb{C}^n$, the action of the $p$\textsuperscript{th} $\varphi$-function
+    of $A$ on the vector $v$ could be read from the first $m$ entries of the last
+    column of $\exp(\hat{A})$:
+    \begin{equation*}
+        \exp(\hat{A})_{[1 : n, n+p]}
+        = \sum_{k=0}^{\infty}{\frac{1}{k!} (\hat{A}^k)_{[1 : n, n+p]}}
+        = \sum_{k=p}^{\infty}{\frac{1}{k!} A^{k-p} v} = \varphi_p(A) v
+    \end{equation*},
+    where $\hat{A}$ is defined in \eqref{eq:embeddedmatrixdefinition}.
+\end{corollary}
 
-To compute the approximation in \eqref{eq:univariatephifunctionapproximation}, we follow \cite{niesen2012} and read $\varphi_p(H_m) e_1$
-from the first $m$ entries of the last column of $\exp(\hat{H}_m)$, with $\hat{H}_m$ defined in \eqref{eq:hhatdefinition} for $H = H_m$.
-Using Lemma \ref{lem:hhatpowered} and \eqref{eq:matrixphifunctionsclosedform}, it could easily be shown that these two vectors are identical:
-\begin{equation*}
-    \exp(\hat{H}_m)_{[1 : m, m+p]}
-    = \sum_{k=0}^{\infty}{\frac{1}{k!} (\hat{H}_m^k)_{[1 : m, m+p]}}
-    = \sum_{k=p}^{\infty}{\frac{1}{k!} H_m^{k-p}e_1} = \varphi_p(H_m) e_1
-\end{equation*}
-
-
-\subsubsection{Rational Krylov approximation}
-\label{sec:rationalkrylovapproximation}
-\todo[inline]{Describe pole selection}
-Similar to \autoref{sec:polynomialkrylovapproximation}, we do the modified Arnoldi algorithm to get an orthonormal
-basis for $\mathcal{Q}_m(A, v)$ and an upper Hessenberg matrix $H_m$. We then approximate $\varphi_p(A)v$ by
-$\varphi_p(V_m A_m V_m^*)v$ where $A_m = V_m^* A V_m$. If $\xi_m = \infty$, it could be easily shown from
-\eqref{eq:rationalarnoldifactorization} that $A_m = H_m K_m^{-1}$ where $K_m = I_m + H_m D_m$. with similar arguments
-as in the previous section, we can write the approximation as
-\begin{equation}
-    \label{eq:rationalkrylovapproximation}
-    \varphi_p(A)v \simeq \left\| v \right\|_{2} V_m \varphi_p(A_m) e_1.
-\end{equation}
-We can exploit Lemma \ref{lem:hhatpowered} and compute $\varphi_p(A_m) e_1$ by reading the first $m$ entries of the
-last column of $\exp(\hat{A}_m)$, with $\hat{A}_m$ defined in \eqref{eq:hhatdefinition} for $H = A_m$.
+Using Corollary \ref{cor:embeddedmatrixexponential}, to compute the approximation
+in \eqref{eq:univariatephifunctionapproximation}, we follow \cite{niesen2012} and
+read $\varphi_p(H_m) e_1$ from the first $m$ entries of the last column of
+$\exp(\hat{H}_m)$, with $\hat{H}_m$ defined in \eqref{eq:embeddedmatrixdefinition}
+for the matrix-vector pair $(H_m, e_1)$.
 
 \subsubsection{Error Estimation}
-The first method described in this section \autoref{sec:polynomialkrylovapproximation} could be generalized to any
-function $f$ that is analytic on a domain which contains the eigenvalues of $A$.
+The first method described in this section \autoref{sec:polynomialkrylovapproximation}
+could be generalized to any function $f$ that is analytic on a domain which contains
+the eigenvalues of $A$.
 
 % NOTE: The result of Theorem 6.5 can be extended to general matrices by replacing [α, β] with the numerical range of A.
 % For details, we refer to the seminal paper [M. Hochbruck and C. Lubich, On Krylov subspace approximations to the matrix
 % exponential operator, SIAM J. Numer. Anal., 34 (1997), pp. 1911–1925].
 \begin{theorem}
     \label{the:univariateerrorestimationgeneral}
-    Let $A \in \mathbb{C}^{n \times n}$ be a Hermitian matrix. For a general scalar function $f: \mathbb{C} \to \mathbb{C}$ that is
-    analytic on a domain $\Omega \subset \mathbb{C}$ containing the spectrum of $A$, $\Lambda(A) \subset \mathbb{R}$, the
-    error of the approximation $f_m := \left\| v \right\|_{2} V_m f(H_m) e_1$ is bounded by the maximum error of the
-    polynomial that approximates $f$ the best in $\Omega$:
+    Let $A \in \mathbb{C}^{n \times n}$ be a Hermitian matrix. For a general scalar
+    function $f: \mathbb{C} \to \mathbb{C}$ that is analytic on a domain
+    $\Omega \subset \mathbb{C}$ containing the spectrum of $A$,
+    $\Lambda(A) \subset \mathbb{R}$, the error of the approximation
+    $f_m := \left\| v \right\|_{2} V_m f(H_m) e_1$ is bounded by the maximum error
+    of the polynomial that approximates $f$ the best in $\Omega$:
     \begin{equation}
         \label{eq:univariateerrorestimationgeneral}
-        \left\| f(A)v - f_m \right\|_2 \le 2 \left\| v \right\|_2 \min_{g \in \Pi_{m-1}} \max_{z \in \Lambda(A)} \left|f(z) - g(z) \right|
+        \left\| f(A)v - f_m \right\|_2 \le
+        2 \left\| v \right\|_2 \min_{g \in \Pi_{m-1}}
+        \max_{z \in \Lambda(A)} \left|f(z) - g(z) \right|
     \end{equation}
 \end{theorem}
 \begin{proof}
-    Considering an arbitrary polynomial $g \in \Pi_{m-1}$, we define the error $e = f - g$, we use
-    Corollary \ref{cor:univariateerrorestimationpolynomial}, the triangle inequality, and the orthonormality of the columns of $V_m$ to get
+    Considering an arbitrary polynomial $g \in \Pi_{m-1}$, we define the error
+    $e = f - g$, we use Corollary \ref{cor:univariateerrorestimationpolynomial},
+    the triangle inequality, and the orthonormality of the columns of $V_m$ to get
     \begin{equation*}
         \begin{aligned}
             \left\| f(A)v - f_m \right\|_2
@@ -403,30 +418,35 @@ function $f$ that is analytic on a domain which contains the eigenvalues of $A$.
             \end{aligned}
     \end{equation*}
     % CHECK: How so?
-    In the last step, we used that $\Lambda(H_m) \subset \Lambda(A) \subset \Omega$ holds due to eigenvalue interlacing.
+    In the last step, we used that $\Lambda(H_m) \subset \Lambda(A) \subset \Omega$
+    holds due to eigenvalue interlacing.
 \end{proof}
 
-To specialize \autoref{the:univariateerrorestimationgeneral} to $\varphi$-functions, we follow two approaches. The
-first one is using truncated Taylor series to get an approximation for the left-hand-side of
-\eqref{eq:univariateerrorestimationgeneral}, which results in the following lemma.
+To specialize \autoref{the:univariateerrorestimationgeneral} to $\varphi$-functions,
+we follow two approaches. The first one is using truncated Taylor series to get an
+approximation for the left-hand-side of \eqref{eq:univariateerrorestimationgeneral},
+which results in the following lemma.
 
 % CHECK: Why always considering negative eigenvalues?
 % NOTE: Much better estimates can be obtained, e.g., by Chebyshev expansion:
 % H. Tal-Ezer, Polynomial approximation of functions of matrices and applications, J. Sci. Comput. 4 (1989), pp. 25–60
 \begin{lemma}
     \label{lem:univariateerrorestimationphitaylor}
-    For a phi-function $\varphi_p(z)$ defined in \eqref{eq:scalarphifunctionsclosedform} and a Hermitian matrix
-    $A \in \mathbb{C}^{n \times n}$ with the spectrum $\Lambda(A) \subset [-\alpha, 0] \subset \mathbb{R}$ for $\alpha > 0$,
-    the error of the approximation $\varphi_{p, m} := \left\| v \right\|_{2} V_m \varphi_p(H_m) e_1$ scales with
-    $\alpha^m$:
+    For a phi-function $\varphi_p(z)$ defined in \eqref{eq:scalarphifunctionsclosedform}
+    and a Hermitian matrix $A \in \mathbb{C}^{n \times n}$ with the spectrum
+    $\Lambda(A) \subset [-\alpha, 0] \subset \mathbb{R}$ for $\alpha > 0$,
+    the error of the approximation
+    $\varphi_{p, m} := \left\| v \right\|_{2} V_m \varphi_p(H_m) e_1$
+    scales with $\alpha^m$:
     \begin{equation}
         \label{eq:univariateerrorestimationphitaylor}
-        \left\| \varphi_p(A)v - \varphi_{p, m} \right\|_2 \le 2 \left\| v \right\|_2 \frac{\alpha^m}{(m+p)!}
+        \left\| \varphi_p(A)v - \varphi_{p, m} \right\|_2 \le 2 \left\| v \right\|_2
+        \frac{\alpha^m}{(m+p)!}
     \end{equation}
 \end{lemma}
 \begin{proof}
-    We replace the exponential in \eqref{eq:scalarphifunctionsclosedform} by its truncated Taylor expansion
-    around zero and we keep the first $m+p-1$ to get
+    We replace the exponential in \eqref{eq:scalarphifunctionsclosedform} by its
+    truncated Taylor expansion around zero and we keep the first $m+p-1$ to get
     \begin{equation*}
         \begin{aligned}
             \varphi_p(z) & = z^{-p} \left( \sum_{k=0}^{m+p-1}{\frac{1}{k!}z^k}
@@ -435,22 +455,23 @@ first one is using truncated Taylor series to get an approximation for the left-
             & \le \sum_{k=0}^{m-1}{\frac{1}{(k+p)!}z^k} + \frac{1}{(m+p)!} \abs{z}^{m}, \quad \forall z \in \Lambda(A)
             \end{aligned}
     \end{equation*}
-    where $-\alpha \le z' \le 0$. In the last step, we used $\exp(z') \le 1$ for all non-positive $z'$. By choosing $g(z) = \sum_{k=0}^{m-1}{\frac{1}{(k+p)!}z^k}$ and taking the maximum of the
-    absolute value of both sides for $z \in \Lambda(A)$, we can write
+    where $-\alpha \le z' \le 0$. In the last step, we used $\exp(z') \le 1$ for all
+    non-positive $z'$. By choosing $g(z) = \sum_{k=0}^{m-1}{\frac{1}{(k+p)!}z^k}$ and
+    taking the maximum of the absolute value of both sides for $z \in \Lambda(A)$,
+    we can write
     \begin{equation*}
         \max_{z \in \Lambda(A)}\left| \varphi_p(z) - g(z) \right|
         \le \frac{1}{(m+p)!} \max_{z \in \Lambda(A)}\abs{z}^{m}
         = \frac{1}{(m+p)!} \alpha^m.
     \end{equation*}
-    With this, we have found a polynomial $g \in \Pi_{m-1}$ that has this error bound, so we can be sure that
-    the minimum of the error bound over all polynomials in $\Pi_{m-1}$ is less than this bound. Combining this
-    result with \autoref{the:univariateerrorestimationgeneral} completes the proof.
+    With this, we have found a polynomial $g \in \Pi_{m-1}$ that has this error bound,
+    so we can be sure that the minimum of the error bound over all polynomials in
+    $\Pi_{m-1}$ is less than this bound. Combining this result with
+    \autoref{the:univariateerrorestimationgeneral} completes the proof.
 \end{proof}
 
-Using the polynomial approximation given in \cite[Lemma A.1]{kressner2019krylov}, we can get a better error bound
-for approximating $\varphi_1(A)v$.
-% This approximation is only given for $p=1$, but with a minor modification in theproof, it can be shown that the same
-% bound holds true for $p > 1$ as well.
+Using the polynomial approximation given in \cite[Lemma A.1]{kressner2019krylov},
+we can get a better error bound for approximating $\varphi_1(A)v$.
 The polynomial approximation states that
 \begin{equation}
     \min_{g \in \Pi_{m-1}} \max_{z \in [-\alpha, 0]} \left|\varphi_1(z) - g(z) \right| \le
@@ -460,14 +481,17 @@ The polynomial approximation states that
         \frac{32}{12m-5\alpha} \left( \frac{e \alpha}{4m+2\alpha} \right)^m & m \ge \frac{\alpha}{2}
     \end{cases}.
 \end{equation}
-Using this polynomial approximation error bound and combining it with \eqref{eq:univariateerrorestimationgeneral}
-gives the following theorem for the Arnoldi method approximation of $\varphi_1(A)v$ for Hermitian matrices.
+Using this polynomial approximation error bound and combining it with
+\eqref{eq:univariateerrorestimationgeneral} gives the following theorem for the
+Arnoldi method approximation of $\varphi_1(A)v$ for Hermitian matrices.
 \begin{mdframed}
     \begin{theorem}
         \label{the:univariateerrorestimationchebyshev}
-        For the phi-function $\varphi_1(z)$ defined in \eqref{eq:scalarphifunctionsclosedform} and a Hermitian matrix
-        $A \in \mathbb{C}^{n \times n}$ with the spectrum $\Lambda(A) \subset [-\alpha, 0] \subset \mathbb{R}$ for $\alpha > 0$,
-        the error of the approximation $\varphi_{1, m} := \left\| v \right\|_{2} V_m \varphi_1(H_m) e_1$ scales with $\alpha$ as
+        For the phi-function $\varphi_1(z)$ defined in \eqref{eq:scalarphifunctionsclosedform}
+        and a Hermitian matrix $A \in \mathbb{C}^{n \times n}$ with the spectrum
+        $\Lambda(A) \subset [-\alpha, 0] \subset \mathbb{R}$ for $\alpha > 0$,
+        the error of the approximation $\varphi_{1, m} := \left\| v \right\|_{2} V_m \varphi_1(H_m) e_1$
+        scales with $\alpha$ as
         \begin{equation}
             \label{eq:univariateerrorestimationphi1}
             \left\| \varphi_1(A)v - \varphi_{1, m} \right\|_2 \le
@@ -482,14 +506,66 @@ gives the following theorem for the Arnoldi method approximation of $\varphi_1(A
     \end{theorem}
 \end{mdframed}
 
-\subsection{Approximation of Bivariate Matrix Functions}\label{sec:krylovmethodbivariate}
-\todo[inline]{Summerize the algorithm in \cite{kressner2019krylov}.}
+\subsection{Rational Krylov approximation}
+\label{sec:rationalkrylovapproximation}
+Similar to \autoref{sec:polynomialkrylovapproximation}, we do the modified Arnoldi
+algorithm to get an orthonormal basis for $\mathcal{Q}_m(A, v)$ and an upper
+Hessenberg matrix $H_m$. We then approximate $\varphi_p(A)v$ by
+$\varphi_p(V_m A_m V_m^*)v$ where $A_m = V_m^* A V_m$. If $\xi_m = \infty$,
+it could be easily shown from \eqref{eq:rationalarnoldifactorization} that
+$A_m = H_m K_m^{-1}$ where $K_m = I_m + H_m D_m$. with similar arguments
+as in the previous section, we can write the approximation as
+\begin{equation}
+    \label{eq:rationalkrylovapproximation}
+    \varphi_p(A)v \simeq \left\| v \right\|_{2} V_m \varphi_p(A_m) e_1.
+\end{equation}
+We can exploit Corollary \ref{cor:embeddedmatrixexponential}, and compute
+$\varphi_p(A_m) e_1$ by reading the first $m$ entries of the last column of
+$\exp(\hat{A}_m)$, with $\hat{A}_m$ defined in \eqref{eq:embeddedmatrixdefinition}
+for the matrix-vector pair $(A_m, e_1)$.
+
+\subsubsection{Pole selection}
+\todo{Describe pole selection}
+
+\subsection{Reference evaluation}
+\label{sec:exactevaluation}
+\todo[color=cyan]{Add the recursive algorithm}
+\begin{comment}
+    \begin{equation}
+        \varphi_p(A) v = A^{-1} \varphi_p(A) v - A^{-1} v / {(p-1)!}
+    \end{equation}
+\end{comment}
+In order to evaluate the action of $\varphi_p(A)$ for a matrix
+$A \in \mathbb{C}^{n \times n}$ on a vector $v \in \mathbb{C}^n$,
+we use Corollary \ref{cor:embeddedmatrixexponential} for the matrix-vector
+pair $(A, v)$ and read $\varphi_p(A) v$ from the first $n$ entries of the last
+column of $\exp(\hat{A})$. Contrary to the approximation techniques described in
+this section, here the embedded matrix will be large and sparse.
+Thus, computing its matrix exponential directly might introduce memory issues
+since the matrix exponential does not inherit the sparsity of $A$.
+However, since we are only interested in the last column of the matrix exponential,
+we can exploit the sparsity of the embedded matrix $\hat{A}$ and directly compute
+the action of the matrix exponential on the last standard basis of $\mathbb{R}^{n+p}$,
+$e_{n+p} = [0\:0\:\cdots\:1]^\top$, which gives its last column:
+\begin{equation*}
+    \varphi_p(A) v = \exp(\hat{A})_{[1 : n, n+p]} = \exp(\hat{A}) e_{n+p}.
+\end{equation*}
+
+We use the \texttt{scipy.sparse.linalg.expm\_multiply} function from
+the SciPy library~\cite{SciPy2020} for this purpose.
+
+\subsection{Approximation of Bivariate Matrix Functions}
+\label{sec:krylovmethodbivariate}
+
+\todo[color=cyan]{Summerize the algorithm in \cite{kressner2019krylov}.}
 
 \section{Implementations and Experiments}
 
-In this section, the implementations of the methods described in \autoref{sec:methods} are presented and evaluated.
-In order to test the methods, we consider stiffness matrices that appear in solving 1D and 2D Laplace equation by the finite
-difference method using a uniform mesh. These matrices are sparse, real, and symmetric. They are obtained by
+In this section, the implementations of the methods described in \autoref{sec:methods}
+are presented and evaluated. In order to test the methods, we consider stiffness
+matrices that appear in solving 1D and 2D Laplace equation by the finite difference
+method using a uniform mesh. These matrices are sparse, real, and symmetric.
+They are obtained by
 \begin{equation*}
     \begin{aligned}
         \mathbb{R}^{n \times n} \ni \hat{A}_{1D} & = (n+1)^2 K_n,\\
@@ -498,8 +574,8 @@ difference method using a uniform mesh. These matrices are sparse, real, and sym
         %     I_n \otimes I_n \otimes K_n + I_n \otimes K_n \otimes I_n+ K_n \otimes I_n \otimes I_n);
         \end{aligned}
 \end{equation*}
-where $\otimes$ denotes the Kronecker product, $n$ is the number of interior grid points, and $K_n$ is a tridiagonal
-matrix defined as
+where $\otimes$ denotes the Kronecker product, $n$ is the number of interior
+grid points, and $K_n$ is a tridiagonal matrix defined as
 \begin{equation*}
     K_n =
     \begin{bmatrix}
@@ -514,46 +590,67 @@ matrix defined as
 \begin{figure}[t!]
     \centering
     \includegraphics[width=.8\textwidth]{img/eigvals.png}
-    \caption{Distribution of eigenvalues of the test matrices with $n=100$ and $\lambda_{min} = -1000$.}
+    \caption{
+        Distribution of eigenvalues of the test matrices with $n=100$ and
+        $\lambda_{min} = -1000$.
+    }
     \label{fig:eigenvaluedistributions}
 \end{figure}
 
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=.9\textwidth]{img/relgaps.png}
-    \caption{Right and left relative gaps of the test matrices with $\lambda_{min} = -1000$ against their size.}
-    \label{fig:relgaps}
-\end{figure}
+\begin{comment}
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=.9\textwidth]{img/relgaps.png}
+        \caption{
+            Right and left relative gaps of the test matrices with
+            $\lambda_{min} = -1000$ against their size.
+            }
+            \label{fig:relgaps}
+        \end{figure}
+\end{comment}
 
-Since these matrices could be scaled with different time steps, for instance, and since we are interested in studying
-the effect of different eigenvalue distributions on the same interval, we take $\hat{A}_{1D} \in \mathbb{R}^{n \times n}$
-and $\hat{A}_{2D} \mathbb{R}^{n \times n}$ ($n$ must have an integer square root), and we spectrally scale them so that
-they both have the same spectral interval $[\lambda_{min}, \lambda_{max}]$. We call the resulting matrices $A_1$ and $A_2$,
-respectively. The spectral interval of a matrix is the smallest interval in $\mathbb{R}$ that contains all the eigenvalues
-of the matrix. For Hermitian and real symmetric matrices, this interval coincides with the numerical range of the matrix,
+Since these matrices could be scaled with different time steps, for instance,
+and since we are interested in studying the effect of different eigenvalue
+distributions on the same interval, we take $\hat{A}_{1D} \in \mathbb{R}^{n \times n}$
+and $\hat{A}_{2D} \mathbb{R}^{n \times n}$ ($n$ must have an integer square root),
+and we spectrally scale them so that they both have the same spectral interval
+$[\lambda_{min}, \lambda_{max}]$. We call the resulting matrices $A_1$ and $A_2$,
+respectively. The spectral interval of a matrix is the smallest interval in
+$\mathbb{R}$ that contains all the eigenvalues of the matrix. For Hermitian and
+real symmetric matrices, this interval coincides with the numerical range of the matrix,
 which is defined for a general square matrix
 $A \in \mathbb{C}^{n \times n}$ as
 \begin{equation}
     \label{eq:numericalrange}
     \mathcal{W}(A) = \{x^* A x \:|\: x \in \mathbb{C}^{n \times n} \backslash {0} \}.
 \end{equation}
-Beside these two matrices, we consider three diagonal matrices of size $n \times n$, $A_3$, $A_4$, and $A_5$, with eigenvalues
-distributed on the same interval, $[\lambda_{min}, \lambda_{max}]$. The eigenvalues of $A_3$ are distributed uniformly. The
-eigenvalues of $A_4$ and $A_5$ are distributed geometrically so that they are concentrated on right and left, respectively.
-We always use $\lambda_{max} = -1$ and we test with matrices with different $\lambda_{min}$'s and different sizes.
-\autoref{fig:eigenvaluedistributions} shows the eigenvalues of these matrices with $n=100$ and $\lambda_{min} = -1000$.
-An interesting property of these matrices could be the relative distance between the two smallest and the two largest eigenvalues,
-which we call left and right relative gap, respectively. More formally, if we consider a $n \times n$ matrix $A$ with the
-eigenvalues $\lambda_1 \le \lambda_2 \le \cdots \le \lambda_{n-1} \le \lambda_n$, the left and the right relative gaps are
+Beside these two matrices, we consider three diagonal matrices of size
+$n \times n$, $A_3$, $A_4$, and $A_5$, with eigenvalues distributed on the same
+interval, $[\lambda_{min}, \lambda_{max}]$. The eigenvalues of $A_3$ are distributed
+uniformly. The eigenvalues of $A_4$ and $A_5$ are distributed geometrically so that
+they are concentrated on right and left, respectively. We always use $\lambda_{max} = -1$
+and we test with matrices with different $\lambda_{min}$'s and different sizes.
+\autoref{fig:eigenvaluedistributions} shows the eigenvalues of these matrices with
+$n=100$ and $\lambda_{min} = -1000$.
+\begin{comment}
+An interesting property of these matrices could
+be the relative distance between the two smallest and the two largest eigenvalues,
+which we call left and right relative gap, respectively. More formally, if we
+consider a $n \times n$ matrix $A$ with the eigenvalues
+$\lambda_1 \le \lambda_2 \le \cdots \le \lambda_{n-1} \le \lambda_n$,
+the left and the right relative gaps are
 defined as
 \begin{equation}
     \label{eq:relativegaps}
     \gamma_L = \frac{\lambda_2 - \lambda_1}{\lambda_n - \lambda_1}, \quad
     \gamma_R = \frac{\lambda_n - \lambda_{n-1}}{\lambda_n - \lambda_1}.
 \end{equation}
-These properties are illustrated for the test matrices in \autoref{fig:relgaps}. Both relative gaps decrease for all the test
-matrices as the matrices grow in size. For large $n$'s, $A_1$ always has the smallest relative gaps on both sides. $A_4$ and
-$A_5$ always have the second place on right and left, respectively. $A_2$ and $A_3$ have moderate relative gaps on both sides.
+These properties are illustrated for the test matrices in \autoref{fig:relgaps}.
+Both relative gaps decrease for all the test matrices as the matrices grow in size.
+For large $n$'s, $A_1$ always has the smallest relative gaps on both sides. $A_4$ and
+$A_5$ always have the second place on right and left, respectively.
+$A_2$ and $A_3$ have moderate relative gaps on both sides.
+\end{comment}
 
 % NOTE: Old table of test matrices
 \begin{comment}
@@ -589,117 +686,102 @@ $A_5$ always have the second place on right and left, respectively. $A_2$ and $A
 \begin{figure}[h!]
     \centering
     \begin{subfigure}[b]{.9\textwidth}
-        \includegraphics[width=\textwidth]{img/krylovapproximation/cnvg_ps_PA_3600.png}
+        \includegraphics[width=\textwidth]{img/krylovapproximation/cnvg_ps_PA_n10000.png}
         \caption{Polynomial Krylov approximation.}
         \label{fig:polynomialkrylovapproximationevaluation}
     \end{subfigure}
     \vfill
     \begin{subfigure}[b]{.9\textwidth}
-        \includegraphics[width=\textwidth]{img/krylovapproximation/cnvg_ps_RA_3600.png}
+        \includegraphics[width=\textwidth]{img/krylovapproximation/cnvg_ps_RA_n10000.png}
         \caption{Rational Krylov approximation.}
         \label{fig:rationalkrylovapproximationevaluation}
     \end{subfigure}
-    \caption{Convergence of the apprixmations \eqref{eq:univariatephifunctionapproximation} and \eqref{eq:rationalkrylovapproximation} for matrices of size $n=3600$.}
+    \caption{
+        Convergence of the apprixmations \eqref{eq:univariatephifunctionapproximation}
+        and \eqref{eq:rationalkrylovapproximation} for matrices of size $n=10000$.
+    }
     \label{fig:krylovapproximationevaluation}
 \end{figure}
 
 
-\subsection{Approximation of Phi-functions}
-The methods described in \autoref{sec:krylovmethodunivariate} and \autoref{sec:rationalkrylovapproximation}
+\subsection{Approximation of \texorpdfstring{$\varphi$}{Phi}-functions}
+The methods described in \autoref{sec:polynomialkrylovapproximation}, denoted by PA
+hereafter, and \autoref{sec:rationalkrylovapproximation}, denoted by RA hereafter,
 are implemented and their approximations have been evaluated for the test matrices.
-For the latter, the poles are always $\xi_1 = \xi_2 = \cdots = \xi_{m-1} = 1, \: \xi_m = \infty$.
-For all the test matrices, the approximations are carried out for a normalized random vector $v$.
-For computing $\exp(\hat{H}_m)$ and $\exp(\hat{A}_m)$, the \texttt{scipy.linalg.expm} function from the the
-SciPy library~\cite{SciPy2020} is used which implements a Padé approximation with a variable order that is
-decided based on the array data.
-In order to validate the implementations, we use an implementation of \eqref{eq:matrixphifunctionsclosedform}
-and we look at the relative error of the results from the Krylov subspace methods of dimension $m$, denoted by
-$\varphi_p^{(m)}(tA)v$, against the vectors computed by \eqref{eq:matrixphifunctionsclosedform},
-denoted by $\varphi_p(tA)v$, for different matrices and for small $p$'s. The relative error is computed as:
+For RA, the poles are always
+$\xi_1 = \xi_2 = \cdots = \xi_{m-1} = 1, \: \xi_m = \infty$. \todo[noinline]{Update.}
+For all the test matrices, the approximations are carried out for a normalized
+random vector $v$.
+For computing $\exp(\hat{H}_m)$ and $\exp(\hat{A}_m)$, the \texttt{scipy.linalg.expm}
+function from the the SciPy library~\cite{SciPy2020} is used which implements a Padé
+approximation with a variable order that is decided based on the array data.
+In order to evaluate the implementations, we take the vectors computed by the method
+described in \autoref{sec:exactevaluation} as reference and we look at the relative
+error of the results from the Krylov subspace methods of dimension $m$, denoted by
+$\varphi_p^{(m)}(A)v$, against the reference vectors, denoted by $\varphi_p^{EX}(A)v$,
+for different matrices. The relative error is computed as:
 \begin{equation*}
-    \frac{\left\| \varphi_p^{(m)}(tA)v - \varphi_p(tA)v \right\|_2}{\left\| \varphi_p(tA)v\right\|_2}.
+    \frac{\left\| \varphi_p^{(m)}(A)v - \varphi_p^{EX}(A)v \right\|_2}{\left\| \varphi_p^{EX}(A)v\right\|_2}.
 \end{equation*}
-After the implementation is validated, we take the approximations with $m=m^*$ as reference and we compute
-\begin{equation*}
-    \frac{\left\| \varphi_p^{(m)}(tA)v - \varphi_p^{(m^*)}(tA)v \right\|_2}{\left\| \varphi_p^{(m^*)}(tA)v\right\|_2}
-\end{equation*}
-for $0 \le p \le 3$. For each matrix, $m^*$ is picked large enough so that the method converges before $m=m^*$.
-The convergence plots for the Krylov approximations (\autoref{sec:krylovmethodunivariate} and \autoref{sec:rationalkrylovapproximation})
-are illustrated in \autoref{fig:krylovapproximationevaluation} for $A_1$ and $A_2$ and $n=3600$.
-We observe that the polyonomial Krylov approximation always converges slightly faster for larger $p$'s and significantly faster for smaller
-$\lambda_{min}$'s. Comparing the convergence of the two matrices, we observe that even when the matrices have the
-same spectral interval, the convergence is much slower for $A_1$. This gives the notion that the distribution of
-the eigenvalues also plays an important role in the convergence of the method.
 
-\begin{figure}[ht]
-    \centering
-    \includegraphics[width=.9\textwidth]{img/krylovapproximation/cnvg_ps_PA_4900_recursive.png}
-    \caption{
-        Convergence of the apprixmation \eqref{eq:univariatephifunctionapproximation} against
-        \eqref{alg:exactrecursive} for matrices with size $n=4900$.
-    }
-    \label{fig:polynomialkrylovapproximationevaluationrecursive}
-\end{figure}
+The convergence plots for the polynomial and the rational Krylov approximations are
+illustrated in \autoref{fig:krylovapproximationevaluation} for $A_1$ with size $n=10000$.
+We observe that both methods always converge slightly faster for larger $p$'s.
+This observation is consistent with the error bound provided in Lemma
+\ref{lem:univariateerrorestimationphitaylor}, where we can see that increasing $p$ slightly
+improves the bound. This slight improvement could also be justified by looking at the
+$\varphi$-functions on the scalar complex plane. As depicted in
+\autoref{fig:scalarphifunctionscomplexplane}, when $p$ is increased, the
+$\varphi$-function grows more smoothly and thus could be approximated better with a
+polynomial of a fixed degree. Therefore, the polynomial Krylov approximation needs
+less iterations to reach a certain tolerance according to Theorem
+\ref{the:univariateerrorestimationgeneral}.
+As $\lambda_{min}$ goes to $-\infty$, the convergence of the PA method deteriorates significantly.
+On the other hand, the convergence of the RA method is not affected by the spectrum
+of the matrix.
 
-\begin{remark}
-    The reason that the relative errors are not reported against the results of the implementation of
-    \eqref{eq:matrixphifunctionsclosedform} is that this implementation seems to work poorly as $p$ increases.
-    One reason could be that we need to compute the inverse of $A^p$ for this method. Although computation of the
-    inverse is avoided by solving the corresponding system of equations instead, it can still perform poorly because
-    the condition number of $A^p$ grows as $p$ is increased.
-    \autoref{fig:polynomialkrylovapproximationevaluationrecursive} illustrates the convergence of the polynomial
-    approximation when compared to \autoref{alg:exactrecursive} \todo{Add the algorithm}. With the recursive implementation, solving a system
-    of equations with $A^p$ on the left-hand-side is avoided and the loss of accuracy is milder.
-\end{remark}
+% Comparing the convergence of the two matrices, we observe that even when the matrices have the
+% same spectral interval, the convergence is much slower for $A_1$. This gives the notion that the distribution of
+% the eigenvalues also plays an important role in the convergence of the method.
 
 \begin{figure}[h]
     \centering
-    \begin{subfigure}[b]{.9\textwidth}
-        \includegraphics[width=\textwidth]{img/krylovapproximation/cnvg_matrices_PA_4900.png}
-        \caption{Polynomial Krylov approximation.}
-        \label{fig:polynomialkrylovapproximationmatrices}
-    \end{subfigure}
-    \vfill
-    \begin{subfigure}[b]{.9\textwidth}
-        \includegraphics[width=\textwidth]{img/krylovapproximation/cnvg_matrices_RA_4900.png}
-        \caption{Rational Krylov approximation.}
-        \label{fig:rationalkrylovapproximationmatrices}
-    \end{subfigure}
-    \caption{Convergence of the approximations \eqref{eq:univariatephifunctionapproximation} and \eqref{eq:rationalkrylovapproximation}
-    for $p=1$ with different test matrices of size $n=4900$ and the same spectral interval. The error estimation in
-    \eqref{eq:univariateerrorestimationphi1} is plotted with black.}
+    \includegraphics[width=\textwidth]{img/krylovapproximation/cnvg_matrices_PA_n10000.png}
+    \caption{Convergence of the approximation \eqref{eq:univariatephifunctionapproximation}
+    for $p=1$ with different test matrices of size $n=10000$ and the same spectral interval.
+    The error estimation in \eqref{eq:univariateerrorestimationphi1} is plotted with black.}
     \label{fig:krylovapproximationmatrices}
 \end{figure}
 
-\begin{figure}[h!]
+\begin{figure}[h]
     \centering
-    \includegraphics[width=.9\textwidth]{img/krylovapproximation/cnvg_methods_p1_4900.png}
-    \caption{Convergence of the approximations \eqref{eq:univariatephifunctionapproximation} (PA) and \eqref{eq:rationalkrylovapproximation} (RA)
-    for $p=1$ with different test matrices of size $n=4900$ and the same spectral interval.}
-    \label{fig:krylovapproximationmethodscompared}
+    \includegraphics[width=.9\textwidth]{img/krylovapproximation/cputime_methods.png}
+    \caption{
+        CPU time for different evaluation methods. For the approximating methods,
+        the minimum iterations required to reach a relative error less than $10^{-12}$
+        is considered.
+    }
+    \label{fig:krylovapproximationcputime}
 \end{figure}
 
-\todo{Comment on this Figure also}
-\begin{figure}[h!]
-    \centering
-    \includegraphics[width=.8\textwidth]{img/krylovapproximation/cnvg_sizes_p1_lambda10000.png}
-    \caption{Convergence of the approximations \eqref{eq:univariatephifunctionapproximation} (PA) and \eqref{eq:rationalkrylovapproximation} (RA)
-    for $p=1$ with test matrices of different sizes and $\lambda_{min} = -10000$.}
-    \label{fig:krylovapproximationsizes}
-\end{figure}
+\autoref{fig:krylovapproximationmatrices} compares the convergenece of the
+test matrices with the same spectral interval, thus, the same smallest and largest
+eigenvalues.
+With $\lambda_{min} = -1000$, the method converges with almost the same rate for all
+the test matrices, which is very close the same rate estimated in
+\eqref{eq:univariateerrorestimationphi1}.
+As $\lambda_{min}$ gets larger in magnitude, we observe that the convergene for the matrices
+$A_2$ and $A_5$ get considerably faster than the other matrices and the error estimate.
+What these two matrices have in common is that the distributions of their eigenvalues
+(see \autoref{fig:eigenvaluedistributions}) are less dense on the right side of their
+spectral interval compared to the other test matrices.
 
-The error estimates given in Lemma \ref{lem:univariateerrorestimationphitaylor} and \autoref{the:univariateerrorestimationchebyshev}
-show that the largest magnitude eigenvalue of the matrix change the rate of convergence of the method. They also show that the starting error
-decreases for larger $p$'s. Both interpretation are consistent with our numerical results, as we observe the same patterns in
-\autoref{fig:polynomialkrylovapproximationevaluation}. \autoref{fig:polynomialkrylovapproximationmatrices}, on the other hand, goes
-one step further and compares the convergenece of the matrices with the same spectral interval, thus, same smallest and largest eigenvalues.
-With $\lambda_{min} = -1000$, the method converges with almost the same rate for all the matrices, which is the same rate estimated in
-\eqref{eq:univariateerrorestimationphi1}. As $\lambda_{min}$ gets larger in magnitude, we observe that the convergene for the matrices
-$A_2$ and $A_5$ get considerably faster than the other matrices and the error estimate. We recall from \autoref{fig:relgaps} that these
-two matrices have the biggest right relative gap among the test matrices. \autoref{fig:rationalkrylovapproximationmatrices} shows that
-the convergence of the rational Krylov approximation is less affected by the matrices.
-
-\autoref{fig:krylovapproximationmethodscompared} compares the convergence of the rational Krylov approximation method with the
-polynomial Krylov approximation for the matrices $A_1$ and $A_2$. For both matrices, the rational Krylov approximation converges
-significantly faster than the polynomial (standard) Krylov approximation, especially for smaller $\lambda_{min}$'s. Furtheremore,
-the convergenve rate of the rational method does not deteriorate when $\lambda_{min}$ grows in magnitude.
+In \autoref{fig:krylovapproximationcputime}, the process time of each method is presented for
+the matrices $A_1$ and $A_2$ with different smallest eigenvalues against their sizes. For
+the PA and RA methods, the reported process time corresponds to the minimum number of
+iterations required by that method to reach a certain tolerance in its relative error.
+For both matrices, the advantages of the RA method show themselves when the matrix gets
+larger and the smallest eigenvalue is larger in magnitude. The PA method, on the other hand,
+starts being less efficient than the reference solution when the smallest eigenvalue goes
+to $-\infty$. The reason for this is that as mentioned before, the PA method needs more
+and more iterations to converge when $\lambda_{min} \to -\infty$.
