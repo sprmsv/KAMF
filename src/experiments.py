@@ -4,11 +4,30 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
+import scipy.sparse as sps
+from baryrat import aaa, brasil
 
 from src.phi import Phi
 from src.definitions import Matrix, SparseMatrix
-from src.helpers import relative_error
+from src.helpers import relative_error, spectral_scale, get_FD_matrix
 
+
+def get_test_matrices(n: int, a: float, b: float):
+    # Check the shape of the 2D Laplace matrix
+    assert (n ** .5) % 1 == 0
+
+    # 1D Laplace stiffness matrix
+    A1 = spectral_scale(A=get_FD_matrix(n=n, d=1, scale=False), a=a, b=b)
+    # 2D Laplace stiffness matrix
+    A2 = spectral_scale(A=get_FD_matrix(n=(n ** .5), d=2, scale=False), a=a, b=b)
+    # Diagonal uniformly distributed eigenvalues
+    A3 = sps.diags(np.linspace(a, b, n))
+    # Diagonal geometrically distributed eigenvalues
+    A4 = sps.diags(+np.geomspace(a, b or (b-1e-10), n))
+    # Diagonal reversed geometrically distributed eigenvalues
+    A5 = sps.diags(-np.geomspace(a, b or (b-1e-10), n) + b + a)
+
+    return A1, A2, A3, A4, A5
 
 def check_arnoldi(A: Matrix, v: np.ndarray, ms: list = None, title: str = None) -> plt.Figure:
     """
@@ -82,15 +101,16 @@ def check_arnoldi(A: Matrix, v: np.ndarray, ms: list = None, title: str = None) 
 def approximation_convergence(
         A: SparseMatrix,
         v: np.ndarray,
-        mmax_PA: int,
-        mmax_RA: int,
+        interval: tuple,
+        mmax_PA: int = None,
+        mmax_RA: int = None,
         ps: list[int] = [0, 1, 2],
         nms: int = 30,
 ) -> dict[str, list]:
     """Gets convergence results of the approximation for multiple phi-functions and plots them."""
 
-    ms_PA = [int(m) for m in np.linspace(5, mmax_PA, nms)]
-    ms_RA = [int(m) for m in np.linspace(5, mmax_RA, nms)]
+    ms_PA = [int(m) for m in np.linspace(5, mmax_PA, nms)] if mmax_PA else []
+    ms_RA = [int(m) for m in np.linspace(5, mmax_RA, nms)] if mmax_RA else []
 
     data = {'p': [], 'm': [], 'method': [], 'err': [], 'time': []}
     for p in ps:
@@ -107,7 +127,7 @@ def approximation_convergence(
         data['err'].append(0)
         data['time'].append(elapsed)
 
-        # Get polynomial krylov approximation error
+        # Get PA error
         for m in ms_PA:
             data['p'].append(p)
             data['m'].append(m)
@@ -119,12 +139,135 @@ def approximation_convergence(
             data['err'].append(err)
             data['time'].append(elapsed)
 
-        # Get rational krylov approximation error
+        # Get RA-ONES error
         for m in ms_RA:
             data['p'].append(p)
             data['m'].append(m)
-            data['method'].append('RA')
-            poles = np.array([1] * (m-1) + [np.inf])
+            data['method'].append('RA-ONES')
+            poles = np.array([1] * m)
+            start = process_time()
+            krylov = phi.rationalkrylov(A=A, v=v, m=m, poles=poles)
+            elapsed = process_time() - start
+            err = relative_error(approximation=krylov, exact=exact)
+            data['err'].append(err)
+            data['time'].append(elapsed)
+
+        # Get the interval and the AAA discretization
+        a, b = interval
+        Z = np.linspace(-1000, (b or b - 1e-06), 1000)
+
+        # Get RA-AAA1 error
+        r = aaa(Z=Z, F=phi.scalar, mmax=2, tol=-1)
+        rpoles = r.poles()
+        for m in ms_RA:
+            data['p'].append(p)
+            data['m'].append(m)
+            data['method'].append('RA-AAA1')
+            poles = np.concatenate([rpoles] * (m // len(rpoles) + 1))[:m]
+            start = process_time()
+            krylov = phi.rationalkrylov(A=A, v=v, m=m, poles=poles)
+            elapsed = process_time() - start
+            err = relative_error(approximation=krylov, exact=exact)
+            data['err'].append(err)
+            data['time'].append(elapsed)
+
+        # Get RA-AAA3 error
+        r = aaa(Z=Z, F=phi.scalar, mmax=4, tol=-1)
+        rpoles = r.poles()
+        for m in ms_RA:
+            data['p'].append(p)
+            data['m'].append(m)
+            data['method'].append('RA-AAA3')
+            poles = np.concatenate([rpoles] * (m // len(rpoles) + 1))[:m]
+            start = process_time()
+            krylov = phi.rationalkrylov(A=A, v=v, m=m, poles=poles)
+            elapsed = process_time() - start
+            err = relative_error(approximation=krylov, exact=exact)
+            data['err'].append(err)
+            data['time'].append(elapsed)
+
+        # Get RA-AAA5 error
+        r = aaa(Z=Z, F=phi.scalar, mmax=6, tol=-1)
+        rpoles = r.poles()
+        for m in ms_RA:
+            data['p'].append(p)
+            data['m'].append(m)
+            data['method'].append('RA-AAA5')
+            poles = np.concatenate([rpoles] * (m // len(rpoles) + 1))[:m]
+            start = process_time()
+            krylov = phi.rationalkrylov(A=A, v=v, m=m, poles=poles)
+            elapsed = process_time() - start
+            err = relative_error(approximation=krylov, exact=exact)
+            data['err'].append(err)
+            data['time'].append(elapsed)
+
+        # Get RA-AAA10 error
+        r = aaa(Z=Z, F=phi.scalar, mmax=11, tol=-1)
+        rpoles = r.poles()
+        for m in ms_RA:
+            data['p'].append(p)
+            data['m'].append(m)
+            data['method'].append('RA-AAA10')
+            poles = np.concatenate([rpoles] * (m // len(rpoles) + 1))[:m]
+            start = process_time()
+            krylov = phi.rationalkrylov(A=A, v=v, m=m, poles=poles)
+            elapsed = process_time() - start
+            err = relative_error(approximation=krylov, exact=exact)
+            data['err'].append(err)
+            data['time'].append(elapsed)
+
+        # Get RA-AAAm error
+        for m in ms_RA:
+            data['p'].append(p)
+            data['m'].append(m)
+            data['method'].append('RA-AAAm')
+            r = aaa(Z=Z, F=phi.scalar, mmax=(m + 1), tol=-1)
+            poles = r.poles()
+            start = process_time()
+            krylov = phi.rationalkrylov(A=A, v=v, m=m, poles=poles)
+            elapsed = process_time() - start
+            err = relative_error(approximation=krylov, exact=exact)
+            data['err'].append(err)
+            data['time'].append(elapsed)
+
+        # Get RA-BRASIL1 error
+        r = brasil(f=phi.scalar, interval=(a, -1), deg=1)
+        rpoles = r.poles()
+        for m in ms_RA:
+            data['p'].append(p)
+            data['m'].append(m)
+            data['method'].append('RA-BRASIL1')
+            poles = np.concatenate([rpoles] * (m // len(rpoles) + 1))[:m]
+            start = process_time()
+            krylov = phi.rationalkrylov(A=A, v=v, m=m, poles=poles)
+            elapsed = process_time() - start
+            err = relative_error(approximation=krylov, exact=exact)
+            data['err'].append(err)
+            data['time'].append(elapsed)
+
+        # Get RA-BRASIL3 error
+        r = brasil(f=phi.scalar, interval=(a, -1), deg=3)
+        rpoles = r.poles()
+        for m in ms_RA:
+            data['p'].append(p)
+            data['m'].append(m)
+            data['method'].append('RA-BRASIL3')
+            poles = np.concatenate([rpoles] * (m // len(rpoles) + 1))[:m]
+            start = process_time()
+            krylov = phi.rationalkrylov(A=A, v=v, m=m, poles=poles)
+            elapsed = process_time() - start
+            err = relative_error(approximation=krylov, exact=exact)
+            data['err'].append(err)
+            data['time'].append(elapsed)
+
+        # Get RA-BRASIL5 error
+        r = brasil(f=phi.scalar, interval=(a, -1), deg=5)
+        rpoles = r.poles()
+        for m in ms_RA:
+            data['p'].append(p)
+            data['m'].append(m)
+            data['method'].append('RA-BRASIL5')
+            poles = np.concatenate([rpoles] * (m // len(rpoles) + 1))[:m]
             start = process_time()
             krylov = phi.rationalkrylov(A=A, v=v, m=m, poles=poles)
             elapsed = process_time() - start

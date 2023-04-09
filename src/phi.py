@@ -125,7 +125,7 @@ class Phi:
 
         # Check dimensions
         n = len(v)
-        dtype = A.dtype
+        dtype = A.dtype if not np.iscomplexobj(poles) else poles.dtype
         assert A.shape == (n, n), f'{A.shape} != {(n, n)}'
         assert m <= n, f'{m} > {n}'
         assert m > 0, f'{m} <= 0'
@@ -255,7 +255,7 @@ class Phi:
 
         # Check dimensions
         n = len(v)
-        dtype = A.dtype
+        dtype = A.dtype if not np.iscomplexobj(poles) else poles.dtype
         assert A.shape == (n, n)
         assert m <= n
 
