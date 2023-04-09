@@ -68,6 +68,11 @@ Some properties of the matrix exponential follows:
     \caption{Evaluation of scalar $\varphi$-functions on the complex plane.}
     \label{fig:scalarphifunctionscomplexplane}
 \end{figure}
+\todo[color=pink]{
+    \autoref{fig:scalarphifunctionscomplexplane} is added for a better
+    understanding of the functions as Daniel suggested.
+}
+
 
 \subsection{\texorpdfstring{$\varphi$}{Phi}-functions}
 \todo[color=cyan]{Add applications and motivation.}
@@ -220,7 +225,7 @@ $w = (I - A / \xi_j)^{-1} A v_j$. The rational Arnoldi factorization reads
 \end{equation}
 where $D_m = \diag(\xi_1^{-1}, \dots, \xi_m^{-1})$.
 
-\subsection{Polynomial Krylov approximation}
+\subsection{Polynomial Krylov Approximation}
 \label{sec:polynomialkrylovapproximation}
 In order to evaluate $\varphi_p(A)v$ for a matrix $A \in \mathbb{C}^{n \times n}$
 and a vector $v \in \mathbb{C}^n$, we do the steps in the Arnoldi algorithm to get
@@ -506,7 +511,7 @@ Arnoldi method approximation of $\varphi_1(A)v$ for Hermitian matrices.
     \end{theorem}
 \end{mdframed}
 
-\subsection{Rational Krylov approximation}
+\subsection{Rational Krylov Approximation}
 \label{sec:rationalkrylovapproximation}
 Similar to \autoref{sec:polynomialkrylovapproximation}, we do the modified Arnoldi
 algorithm to get an orthonormal basis for $\mathcal{Q}_m(A, v)$ and an upper
@@ -524,7 +529,9 @@ $\varphi_p(A_m) e_1$ by reading the first $m$ entries of the last column of
 $\exp(\hat{A}_m)$, with $\hat{A}_m$ defined in \eqref{eq:embeddedmatrixdefinition}
 for the matrix-vector pair $(A_m, e_1)$.
 
-\subsubsection{Pole selection}
+\subsubsection{Pole Selection}
+\todo[color=pink]{Added this section on pole selection.}
+
 Before building a rational Krylov subspace and do the steps in the modified Arnoldi
 algorithm, we need to specify the poles of the rational functions in this subspace.
 The choice of the poles is an important task sicne it restricts the functions present
@@ -567,8 +574,14 @@ functions, the poles selected by this algorithm might not be suitable for non-He
 One limitation of both these algorithms is that since they work based on the interpolation points,
 they don't allow for restricting the poles, and work like a black-box regarding the pole selection.
 
-\subsection{Reference evaluation}
+\subsection{Reference Evaluation}
 \label{sec:exactevaluation}
+\todo[color=pink]{
+    Added this section on the computation of reference vectors by the method that Daniel suggested.
+    There was no need for the splitting the method based on the matrix size since we can use the
+    \texttt{scipy.sparse.linalg.expm\_multiply} function for getting the last column of the matrix
+    exponential directly.
+}
 \todo[color=cyan]{Add the recursive algorithm}
 \begin{comment}
     \begin{equation}
@@ -601,7 +614,7 @@ the SciPy library~\cite{SciPy2020} for this purpose.
 
 \section{Implementations and Experiments}
 
-\subsection{Test matrices}
+\subsection{Test Matrices}
 \label{sec:testmatrices}
 
 In this section, the implementations of the methods described in \autoref{sec:methods}
@@ -721,27 +734,21 @@ $A_2$ and $A_3$ have moderate relative gaps on both sides.
 \end{table}
 \end{comment}
 
-\begin{figure}[h!]
-    \centering
-    \begin{subfigure}[b]{.9\textwidth}
-        \includegraphics[width=\textwidth]{img/krylovapproximation/cnvg_ps_PA_n10000.png}
-        \caption{Polynomial Krylov approximation.}
-        \label{fig:polynomialkrylovapproximationevaluation}
-    \end{subfigure}
-    \vfill
-    \begin{subfigure}[b]{.9\textwidth}
-        \includegraphics[width=\textwidth]{img/krylovapproximation/cnvg_ps_RA_n10000.png}
-        \caption{Rational Krylov approximation.}
-        \label{fig:rationalkrylovapproximationevaluation}
-    \end{subfigure}
-    \caption{
-        Convergence of the apprixmations \eqref{eq:univariatephifunctionapproximation}
-        and \eqref{eq:rationalkrylovapproximation} for matrices of size $n=10000$.
-    }
-    \label{fig:krylovapproximationevaluation}
-\end{figure}
+\subsection{Pole Selection for Rational Krylov Approximation}
+\todo[color=pink]{
+    Added this section on the implemented schemes of pole selection using the AAA and the BRASIL algorithms.
+    I did some experiments that are not presented on the report to fix these schemes:
+}
+\todo[color=pink]{
+    $\xi_1 = \xi^*$ and $\xi_j = \infty$ for $j \ge 2$
+    OR
+    $\xi_j= \xi^*$ for $j \ge 1$
+}
+\todo[color=pink]{Comparing the discretization for AAA with \texttt{np.linspace(-a, -b, a)},
+    \texttt{np.linspace(-1000, -b, 1000)} and \texttt{np.geomspace(-a, -b, 1000)}
+    for $10^2 \le a \le 10^5$ and $b = 10^{-6}$
+}
 
-\subsection{Pole selection for rational Krylov approximation}
 We use the \texttt{baryrat} library introduced in \cite{hofreither2021BRASIL} which implements both
 the AAA and the BRASIL algorithms for rational approximations. One downside of using these algorithms
 is the additional computational cost that they bring for computing the poles.
@@ -788,7 +795,7 @@ RA-ONES.
 \end{figure}
 
 
-\subsection{Results}
+\subsection{Numerical Results}
 The methods described in \autoref{sec:polynomialkrylovapproximation} (PA)
 and \autoref{sec:rationalkrylovapproximation} (RA)
 are implemented and their approximations have been evaluated for the test matrices.
@@ -807,6 +814,26 @@ for different matrices. The relative error is computed as:
     \frac{\left\| \mathbf{\Phi_{p, m}} - \mathbf{\Phi_p^{EX}} \right\|_2}
     {\left\| \mathbf{\Phi_p^{EX}} \right\|_2}.
 \end{equation*}
+
+\begin{figure}[h!]
+    \centering
+    \begin{subfigure}[b]{.9\textwidth}
+        \includegraphics[width=\textwidth]{img/krylovapproximation/cnvg_ps_PA_n10000.png}
+        \caption{Polynomial Krylov approximation.}
+        \label{fig:polynomialkrylovapproximationevaluation}
+    \end{subfigure}
+    \vfill
+    \begin{subfigure}[b]{.9\textwidth}
+        \includegraphics[width=\textwidth]{img/krylovapproximation/cnvg_ps_RA_n10000.png}
+        \caption{Rational Krylov approximation.}
+        \label{fig:rationalkrylovapproximationevaluation}
+    \end{subfigure}
+    \caption{
+        Convergence of the apprixmations \eqref{eq:univariatephifunctionapproximation}
+        and \eqref{eq:rationalkrylovapproximation} for matrices of size $n=10000$.
+    }
+    \label{fig:krylovapproximationevaluation}
+\end{figure}
 
 The convergence plots for the polynomial and the rational Krylov approximations are
 illustrated in \autoref{fig:krylovapproximationevaluation} for $A_1$ with size $n=10000$.
@@ -860,6 +887,7 @@ What these two matrices have in common is that the distributions of their eigenv
 (see \autoref{fig:eigenvaluedistributions}) are less dense on the right side of their
 spectral interval compared to the other test matrices.
 
+\todo[color=pink]{Added \autoref{fig:krylovapproximationcputime} which compares the CPU time.}
 In \autoref{fig:krylovapproximationcputime}, the process time of each method is presented for
 the matrices $A_1$ and $A_2$ with different smallest eigenvalues against their sizes. For
 the PA and RA methods, the reported process time corresponds to the minimum number of
@@ -869,3 +897,16 @@ larger and the smallest eigenvalue is larger in magnitude. The PA method, on the
 starts being less efficient than the reference solution when the smallest eigenvalue goes
 to $-\infty$. The reason for this is that as mentioned before, the PA method needs more
 and more iterations to converge when $\lambda \to \infty$.
+
+\todo[color=pink]{Added \autoref{fig:rationalkrylovpoles} which compares the pole selection of RA.}
+\todo{Comment on \autoref{fig:rationalkrylovpoles}.}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=.9\textwidth]{img/AAA/cnvg_poles_n3600_eigs.png}
+    \caption{
+        Convergence of the approximation \eqref{eq:rationalkrylovapproximation} with different
+        pole selection strategies.
+    }
+    \label{fig:rationalkrylovpoles}
+\end{figure}
