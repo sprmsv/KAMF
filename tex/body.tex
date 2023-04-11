@@ -909,15 +909,39 @@ starts being less efficient than the reference solution when the smallest eigenv
 to $-\infty$. The reason for this is that as mentioned before, the PA method needs more
 and more iterations to converge when $\lambda \to \infty$.
 
-\todo[color=pink]{Added \autoref{fig:rationalkrylovpoles} which compares the pole selection of RA.}
-\todo{Comment on \autoref{fig:rationalkrylovpoles}.}
+\todo[color=pink]{Added \autoref{fig:rationalkrylovpoleselection} which compares the pole selection of RA.}
+\todo{Comment on \autoref{fig:rationalkrylovpoleselection}.}
+\begin{comment}
+    - RA-AAA10 works the best among these
+    - RA-AAA10 has a pattern after each 10 m's
+    - The same pattern seems to exist for AAA5 and AAA3
+    - RA-BRASIL's behave very close to RA-AAA although the poles are different
+    - RA-AAAm fails after around m=20, possibly because of the AAA algorithm
+    - It gets better for larger lambda??
+\end{comment}
+
+\todo[color=pink]{Added \autoref{fig:rationalkrylovpoleselectionbrasil} which compares BRASIL and AAA.}
+\todo{Comment on \autoref{fig:rationalkrylovpoleselectionbrasil}.}
+\begin{comment}
+    - They perform similarly in p=0 but BRASIL outperforms AAA as p grows.
+\end{comment}
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=.9\textwidth]{img/AAA/cnvg_poles_n3600_eigs.png}
+    \includegraphics[width=.9\textwidth]{img/AAA/cnvg_poles_n10000_eigs.png}
     \caption{
         Convergence of the approximation \eqref{eq:rationalkrylovapproximation} with different
-        pole selection strategies.
+        pole selection strategies for $A_1$, $p=1$, and $n=10^4$.
     }
-    \label{fig:rationalkrylovpoles}
+    \label{fig:rationalkrylovpoleselection}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=.9\textwidth]{img/AAA/cnvg_poles_n10000_eigs_BRASIL.png}
+    \caption{
+        Convergence of the approximation \eqref{eq:rationalkrylovapproximation} with different
+        rational function approximation methods for $A_1$, $\lambda = 10^5$ and $n=10^4$.
+    }
+    \label{fig:rationalkrylovpoleselectionbrasil}
 \end{figure}
