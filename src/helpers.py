@@ -140,10 +140,14 @@ def plot_eigenvalues(As: list[SparseMatrix], legends: list[str] = None, xticks: 
     if legends:
         ax.legend(loc='right', bbox_to_anchor=(1.15, 0.5))
 
-def spectral_scale(A: SparseMatrix, a: float, b: float) -> SparseMatrix:
+def spectral_scale(A: SparseMatrix, a: float, b: float, eigs: tuple = None) -> SparseMatrix:
     """Scales the spectral interval of a Hermitian matrix to a pre-specified domain [a, b]."""
 
-    lmin = sps.linalg.eigsh(A, k=1, which='SA', return_eigenvectors=False).item()
-    lmax = sps.linalg.eigsh(A, k=1, which='LA', return_eigenvectors=False).item()
+    if not eigs:
+        lmin = sps.linalg.eigsh(A, k=1, which='SA', return_eigenvectors=False).item()
+        lmax = sps.linalg.eigsh(A, k=1, which='LA', return_eigenvectors=False).item()
+    else:
+        lmin, lmax = eigs
     I = sps.identity(n=A.shape[0], dtype=A.dtype, format=A.format)
+
     return (A - lmin * I) * (b - a) / (lmax - lmin) + (a * I)

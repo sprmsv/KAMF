@@ -1,25 +1,34 @@
 from time import process_time
 
-import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
+import numpy as np
 import pandas as pd
 import scipy.sparse as sps
+import seaborn as sns
 from baryrat import aaa, brasil
+from tqdm.notebook import tqdm_notebook as tqdm
 
-from src.phi import Phi
 from src.definitions import Matrix, SparseMatrix
-from src.helpers import relative_error, spectral_scale, get_FD_matrix
+from src.helpers import get_FD_matrix, relative_error, spectral_scale
+from src.phi import Phi
 
 
-def get_test_matrices(n: int, a: float, b: float):
+def get_test_matrices(n: int, a: float, b: float, eigs: dict = None):
     # Check the shape of the 2D Laplace matrix
     assert (n ** .5) % 1 == 0
 
     # 1D Laplace stiffness matrix
-    A1 = spectral_scale(A=get_FD_matrix(n=n, d=1, scale=False), a=a, b=b)
+    A1 = spectral_scale(
+        A=get_FD_matrix(n=n, d=1, scale=False),
+        a=a, b=b,
+        eigs=eigs['A1'] if eigs else None,
+    )
     # 2D Laplace stiffness matrix
-    A2 = spectral_scale(A=get_FD_matrix(n=(n ** .5), d=2, scale=False), a=a, b=b)
+    A2 = spectral_scale(
+        A=get_FD_matrix(n=(n ** .5), d=2, scale=False),
+        a=a, b=b,
+        eigs=eigs['A2'] if eigs else None,
+    )
     # Diagonal uniformly distributed eigenvalues
     A3 = sps.diags(np.linspace(a, b, n))
     # Diagonal geometrically distributed eigenvalues
@@ -107,13 +116,18 @@ def approximation_convergence(
         ps: list[int] = [0, 1, 2],
         nms: int = 30,
 ) -> dict[str, list]:
-    """Gets convergence results of the approximation for multiple phi-functions and plots them."""
+    """Gets convergence results of the approximation for multiple phi-functions."""
 
     ms_PA = [int(m) for m in np.linspace(5, mmax_PA, nms)] if mmax_PA else []
     ms_RA = [int(m) for m in np.linspace(5, mmax_RA, nms)] if mmax_RA else []
 
     data = {'p': [], 'm': [], 'method': [], 'err': [], 'time': []}
+    pbar = tqdm(total=len(ps), desc='Phi-functions (p)', leave=False)
     for p in ps:
+        pbar.desc = f'Phi-functions (p={p})'
+        pbar.total = len(ps)
+        pbar.refresh()
+
         # Create the phi-function
         phi = Phi(p=p)
 
@@ -274,6 +288,10 @@ def approximation_convergence(
             err = relative_error(approximation=krylov, exact=exact)
             data['err'].append(err)
             data['time'].append(elapsed)
+
+        pbar.update()
+
+    pbar.close()
 
     return data
 

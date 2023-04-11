@@ -67,6 +67,8 @@ class Phi:
         if p == 0:
             return spla.expm_multiply(A, v)
         else:
+            # TODO: You can pre-compute an LU decomposition of A and improve this function
+            # NOTE: x = inv(A) b = inv(U) inv(L) x (call spsolve twice)
             t1 = spla.spsolve(A=A, b=Phi._recursive(A=A, v=v, p=p-1))
             t2 = spla.spsolve(A=A, b=v) / np.math.factorial(p-1)
             return t1 - t2
@@ -203,47 +205,6 @@ class Phi:
             else:
                 H_m[j + 1, j] = np.linalg.norm(u_hat)
                 V_m[:, j + 1] = u_hat / H_m[j + 1, j]
-
-        return V_m, H_m
-
-    # UNUSED
-    @staticmethod
-    def standardarnoldi_(A: Matrix, v: np.ndarray, m: int, ro: bool = True) -> tuple[np.ndarray, np.ndarray]:
-        """
-        Standard Arnoldi algorithm (Niesen).
-        """
-
-        # Check dimensions
-        n = len(v)
-        dtype = A.dtype
-        assert A.shape == (n, n)
-        assert m <= n
-
-        # Initialize
-        H_m = np.zeros(shape=(m, m), dtype=dtype)
-        V_m = np.zeros(shape=(n, m), dtype=dtype)
-
-        V_m[:, 0] = v / np.linalg.norm(v)
-        for j in range(0, m):
-            w = A @ V_m[:, j]
-            w_norm = np.linalg.norm(w)
-            for i in range(0, j + 1):
-                H_m[i, j] = V_m[:, i].dot(w)
-                w = w - (H_m[i, j] * V_m[:, i])
-
-            # Reorthogonalization
-            if ro:
-                if np.linalg.norm(w) < .7 * w_norm:
-                    h_hat = V_m[:, :(j+1)].conjugate().T @ w
-                    H_m[:(j+1), j] += h_hat
-                    w -= V_m[:, :(j+1)] @ h_hat
-
-            if j + 1 >= m:
-                hmp1 = np.linalg.norm(w)
-                vmp1 = w / hmp1
-            else:
-                H_m[j + 1, j] = np.linalg.norm(w)
-                V_m[:, j + 1] = w / H_m[j + 1, j]
 
         return V_m, H_m
 

@@ -177,7 +177,7 @@ and an upper Hessenberg matrix $H_m = V_m^* A V_m$. The Arnoldi factorization re
     \label{eq:arnoldifactorization}
     A V_m = V_m H_m + h_{m+1, m} v_{m+1} e_m^\top,
 \end{equation}
-where $e_m$ is the last standard basis vector of $\mathbb{R}^{m}$.
+where $e_m$ is the last canonical basis vector of $\mathbb{R}^{m}$.
 
 \begin{algorithm}
     \caption{Arnoldi algorithm}
@@ -266,7 +266,7 @@ which could be used alongside with \eqref{eq:matrixphifunctionsclosedform} to co
 that $\varphi_p(V_m H_m V_m^*)v = V_m \varphi_p(H_m) V_m^* v$.
 Because all columns of $V_m$ except the first one are orthogonal to $v$, we have
 $V_m^* v = \left\| v \right\|_{2} e_1$, where $e_1$ is the first vector in the
-standard basis of $\mathbb{R}^n$.
+canonical basis of $\mathbb{R}^n$.
 Putting all the pieces together, the approximation could be written as
 \begin{equation}
     \label{eq:univariatephifunctionapproximation}
@@ -327,7 +327,7 @@ smaller than $A$.
             & k \ge p
         \end{cases},
     \end{equation*}
-    where $e_{p-k}$ is the $p-k$\textsuperscript{th} standard basis vector of $\mathbb{R}^{p-1}$.
+    where $e_{p-k}$ is the $p-k$\textsuperscript{th} canonical basis vector of $\mathbb{R}^{p-1}$.
 \end{lemma}
 \begin{proof}
     For $k=1$, the lemma holds by definition. For $k \ge 2$, we now show that assuming
@@ -598,7 +598,7 @@ Thus, computing its matrix exponential directly might introduce memory issues
 since the matrix exponential does not inherit the sparsity of $A$.
 However, since we are only interested in the last column of the matrix exponential,
 we can exploit the sparsity of the embedded matrix $\hat{A}$ and directly compute
-the action of the matrix exponential on the last standard basis of $\mathbb{R}^{n+p}$,
+the action of the matrix exponential on the last canonical basis vector of $\mathbb{R}^{n+p}$,
 $e_{n+p} = [0\:0\:\cdots\:1]^\top$, which gives its last column:
 \begin{equation*}
     \varphi_p(A) v = \exp(\hat{A})_{[1 : n, n+p]} = \exp(\hat{A}) e_{n+p} = \mathbf{\phi_{p}^{EX}}.
@@ -620,7 +620,7 @@ the SciPy library~\cite{SciPy2020} for this purpose.
 In this section, the implementations of the methods described in \autoref{sec:methods}
 are presented and evaluated. In order to test the methods, we consider stiffness
 matrices that appear in solving 1D and 2D Laplace equation by the finite difference
-method using a uniform mesh. These matrices are sparse, real, and symmetric.
+method using a uniform mesh. These matrices are sparse, real, and symmetric positive definite.
 They are obtained by
 \begin{equation*}
     \begin{aligned}
@@ -635,11 +635,11 @@ grid points, and $K_n$ is a tridiagonal matrix defined as
 \begin{equation*}
     K_n =
     \begin{bmatrix}
-        -2 & 1 &  &  &  \\
-        1 & -2 & 1 &  &  \\
-         & 1 & -2 & \ddots &  \\
-         &  & \ddots & \ddots & 1 \\
-         &  &  & 1 & -2  \\
+        2 & -1 &  &  &  \\
+        -1 & 2 & -1 &  &  \\
+         & -1 & 2 & \ddots &  \\
+         &  & \ddots & \ddots & -1 \\
+         &  &  & -1 & 2  \\
     \end{bmatrix}.
 \end{equation*}
 
@@ -665,16 +665,27 @@ grid points, and $K_n$ is a tridiagonal matrix defined as
         \end{figure}
 \end{comment}
 
-Since these matrices could be scaled with different time steps, for instance,
-and since we are interested in studying the effect of different eigenvalue
-distributions on the same interval, we take $\hat{A}_{1D} \in \mathbb{R}^{n \times n}$
-and $\hat{A}_{2D} \mathbb{R}^{n \times n}$ ($n$ must have an integer square root),
-and we spectrally scale them so that they both have the same spectral interval
-$[-\lambda, -\epsilon]$ with $\lambda > 0$ and $\epsilon = 1\mathrm{e}{-06}$. We call the
-resulting matrices $A_1$ and $A_2$, respectively. The spectral interval of a matrix is
-the smallest interval in $\mathbb{R}$ that contains all the eigenvalues of the matrix.
-For Hermitian and real symmetric matrices, this interval coincides with the numerical
-range of the matrix.
+\todo[color=pink]{Explained the logic behind the scaling of the matrices}
+We are interested in evaluating $\varphi_p(-tA) v$ with $t \in \mathbb{R}$ being a time step.
+We take $-\hat{A}_{1D} \in \mathbb{R}^{n \times n}$ and $-\hat{A}_{2D} \in \mathbb{R}^{n \times n}$
+($n$ must have an integer square root), and we spectrally scale them so that they both have the
+same spectral interval $[-\lambda, -\epsilon]$ with $\lambda \gg \epsilon = 1\mathrm{e}{-06} > 0$.
+We call the resulting matrices $A_1$ and $A_2$, respectively.
+The spectral interval of a complex Hermitian or a real symmetric matrix is the smallest
+interval in $\mathbb{R}$ that contains all the eigenvalues of the matrix, and it coincides
+with the numerical range of the matrix.
+Assuming that the spectral interval of the original matrix is $[\lambda_1, \lambda_n]$,
+the spectral scaling is done by $A_i = -a \hat{A}_{iD} + b I$ for $i = 1, 2$; where the coefficients
+are $a = (\lambda - \epsilon) / (\lambda_n - \lambda_1)$ and
+$b = (\lambda \lambda_1 - \epsilon \lambda_n) / (\lambda_n - \lambda_1)$.
+By scaling the matrices this way, we can focus on studying the effect of different eigenvalue
+distributions on the same interval. The evaluation of $\varphi_p(-t\hat{A}_{iD}) v$ could then be
+associated to $\varphi_p(A_i) v$ with $t \simeq \lambda / \lambda_n$ assuming that $\epsilon$
+is sufficiently small and $\lim_{n \to \infty}\lambda_1 = 0$,
+which happens to be the case for $\hat{A}_{1D}$ and $\hat{A}_{2D}$. For $\hat{A}_{1D}$ with
+$n = 10^4$, for instance, picking $\lambda = 10^5$ corresponds to $t \simeq 2.5\mathrm{e}{-04}$.
+
+
 Beside these two matrices, we consider three diagonal matrices of size
 $n \times n$, $A_3$, $A_4$, and $A_5$, with eigenvalues distributed on the same
 interval, $[-\lambda, -\epsilon]$. The eigenvalues of $A_3$ are distributed
