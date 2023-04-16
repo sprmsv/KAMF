@@ -121,12 +121,14 @@ def calculate_relgap(
 
     return relgap_l, relgap_r
 
-def plot_eigenvalues(As: list[SparseMatrix], legends: list[str] = None, xticks: list = None, range_: tuple = None) -> None:
+def plot_eigenvalues(As: list[Matrix], legends: list[str] = None, xticks: list = None, range_: tuple = None) -> None:
     """Plots the eigenvalues of several matrices."""
 
     fig, ax = plt.subplots(1, 1, figsize=(10, 5))
     for idx, A in enumerate(As):
-        eigs = la.eigvalsh(A.toarray())
+        if sps.issparse(A):
+            A = A.toarray()
+        eigs = la.eigvalsh(A)
         ax.scatter(x=eigs, y=[-idx]*len(eigs), s=10, label=(legends[idx] if legends else None))
     ax.set(
         ylim=[-len(As), +1],
