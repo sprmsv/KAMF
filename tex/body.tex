@@ -66,10 +66,6 @@ Some properties of the matrix exponential follows:
         $A$: $\det(\exp(A)) = \exp(\trace(A))$.
 \end{itemize}
 
-\todo[color=pink]{
-    \autoref{fig:scalarphifunctionscomplexplane} is added for a better
-    understanding of the functions as Daniel suggested.
-}
 \begin{figure}[h]
     \centering
     \includegraphics[width=.7\textwidth]{img/scalarcomplexplane.png}
@@ -129,10 +125,6 @@ and use \eqref{eq:matrixexponentialdefinition} to get
 
 \subsection{Trigonometric Matrix Functions}
 \label{sec:trigonometricmatrixfunctions}
-\todo[color=pink]{
-    This subsection is added to define the matrix sine and cosine and their
-    basic properties.
-}
 
 The two most important trigonometric functions, sine and cosine, are defined
 \cite{higham2008functions} for all $A \in \mathbb{C}^{n \times n}$ by
@@ -614,7 +606,6 @@ $\exp(\hat{A}_m)$, with $\hat{A}_m$ defined in \eqref{eq:embeddedmatrixdefinitio
 for the matrix-vector pair $(A_m, e_1)$.
 
 \subsubsection{Pole Selection}
-\todo[color=pink]{Added this section on pole selection. I present here the AAA and the BRASIL algorithms.}
 
 Before building a rational Krylov subspace and do the steps in the modified Arnoldi
 algorithm, we need to specify the poles of the rational functions in this subspace.
@@ -648,24 +639,20 @@ of nodes that are chosen among a large number of nodes given on a domain in the 
 At each iteration, they choose the next interpolation point by a greedy algorithm which picks
 the point that has the maximum absolute residual on that iteration. The poles of the rational
 function could then be easily computed.
-The BRASIL algorithm introduced in \cite{hofreither2021BRASIL} is another algorithm for
-computing the best rational approximation of a given degree for real scalar functions on a
-given interval.
-Similar the the AAA algorithm, the BRASIL algorithm also works with the barycentric
-representation of rational functions but it is not restricted to a set of interpolation
-points given by the user. We should keep in mind that since it only supports the real scalar
-functions, the poles selected by this algorithm might not be suitable for non-Hermitian matrices.
-One limitation of both these algorithms is that since they work based on the interpolation points,
-they do not allow for restricting the poles, and work like a black-box regarding the pole selection.
+\begin{comment}
+    The BRASIL algorithm introduced in \cite{hofreither2021BRASIL} is another algorithm for
+    computing the best rational approximation of a given degree for real scalar functions on a
+    given interval.
+    Similar the the AAA algorithm, the BRASIL algorithm also works with the barycentric
+    representation of rational functions but it is not restricted to a set of interpolation
+    points given by the user. We should keep in mind that since it only supports the real scalar
+    functions, the poles selected by this algorithm might not be suitable for non-Hermitian matrices.
+\end{comment}
+One limitation of this algorithm is that since it works based on the interpolation points,
+it does not allow for restricting the poles, and works like a black-box regarding the pole selection.
 
 \subsection{Reference Evaluations}
 \label{sec:exactevaluation}
-\todo[color=pink]{
-    Added this section on the computation of reference vectors by the method that Daniel suggested.
-    There was no need for the splitting the method based on the matrix size since we can use the
-    \texttt{scipy.sparse.linalg.expm\_multiply} function for getting the last column of the matrix
-    exponential directly for large sparse matrices.
-}
 
 In this subsection, we describe the methods that are used for computing the reference
 evaluations of the action of different matrix functions on vectors for large sparse matrices.
@@ -785,7 +772,6 @@ grid points, and $K_n$ is a tridiagonal matrix defined as
         \end{figure}
 \end{comment}
 
-\todo[color=pink]{Explained the logic behind the scaling of the matrices}
 We are interested in evaluating $\varphi_p(-tA) v$ with $t \in \mathbb{R}$ being a time step.
 We take $-\hat{A}_{1D} \in \mathbb{R}^{n \times n}$ and $-\hat{A}_{2D} \in \mathbb{R}^{n \times n}$
 ($n$ must have an integer square root), and we spectrally scale them so that they both have the
@@ -866,23 +852,10 @@ $A_2$ and $A_3$ have moderate relative gaps on both sides.
 \end{comment}
 
 \subsubsection*{Pole Selection for Rational Krylov Approximation}
-\todo[color=pink]{
-    Added this section on the implemented schemes of pole selection using the AAA and the BRASIL algorithms.
-    I did some experiments that are not presented on the report to fix these schemes:
-}
-\todo[color=pink]{
-    $\xi_1 = \xi^*$ and $\xi_j = \infty$ for $j \ge 2$
-    OR
-    $\xi_j= \xi^*$ for $j \ge 1$
-}
-\todo[color=pink]{Comparing the discretization for AAA with \texttt{np.linspace(-a, -b, a)},
-    \texttt{np.linspace(-1000, -b, 1000)} and \texttt{np.geomspace(-a, -b, 1000)}
-    for $10^2 \le a \le 10^5$ and $b = 10^{-6}$
-}
 
 We use the \texttt{baryrat} library introduced in \cite{hofreither2021BRASIL} which implements both
-the AAA and the BRASIL algorithms for rational approximations. One downside of using these algorithms
-is the additional computational cost that they bring for computing the poles.
+the AAA algorithm for rational approximations. One downside of using this algorithm
+is the additional computational cost that it brings for computing the poles.
 The AAA algorithm  computes the residual of the approximation on all the given interpolation points at
 each iteration. Hence, for approximating a rational function of degree $m$, its computation cost scales
 as $O(mn)$ where $n$ is the number of interpolation points given as input.
@@ -896,30 +869,18 @@ advantage of this behaviour and we always compute the poles by the AAA algorithm
 points spaced linearly on the interval $[-1000, -\epsilon]$.
 
 For a rational Krylov subspace of order $m$, first we compute $k \le m$ poles $\eta_1, \dots, \eta_k$
-by either the AAA or the BRASIL algorithm and we repeat them enough times to fill the $m$ poles $\xi_1, \dots, \xi_m$. With this
-scheme for the pole selection, the RA method is denoted by RA-AAAk or RA-BRASILk where k is replaced by its number. We also consider
-the case with a single repeated pole $\xi_1 = \xi_2 = \cdots = \xi_{m} = 1$ and we deonte it by
-RA-ONES.
+by the AAA algorithm and we repeat them enough times to fill the $m$ poles $\xi_1, \dots, \xi_m$.
+With this scheme for the pole selection, the RA method is denoted by RA-AAAk where "k" is replaced
+by its number.
+We also consider the case with a single repeated pole $\xi_1 = \xi_2 = \cdots = \xi_{m} = 1$ and
+we deonte it by RA-ONES.
 
 \begin{figure}[h!]
     \centering
-    \begin{subfigure}[b]{.9\textwidth}
-        \includegraphics[width=\textwidth]{img/AAA/poles_linspace_aaa.png}
-        \caption{
-            Results of the AAA algorithm with $\lambda$ uniformly
-            distributed interpolation points on the interval $[-\lambda, -\epsilon]$.
-        }
-        \label{fig:polesaaa}
-    \end{subfigure}
-    \begin{subfigure}[b]{.9\textwidth}
-        \includegraphics[width=\textwidth]{img/AAA/poles_linspace_brasil.png}
-        \caption{
-            Results of the BRASIL algorithm with on the interval $[-\lambda, -1]$.
-        }
-        \label{fig:polesbrasil}
-    \end{subfigure}
+    \includegraphics[width=.9\textwidth]{img/AAA/poles_linspace_aaa.png}
     \caption{
-        The computed poles and interpolation points for $\varphi_3$ by the rational approximation algorithms.
+        Computed poles by the AAA algorithm for $\varphi_3$ with $\lambda$ uniformly
+        distributed interpolation points on the interval $[-\lambda, -\epsilon]$.
     }
     \label{fig:poles}
 \end{figure}
@@ -1017,7 +978,6 @@ What these two matrices have in common is that the distributions of their eigenv
 (see \autoref{fig:eigenvaluedistributions}) are less dense on the right side of their
 spectral interval compared to the other test matrices.
 
-\todo[color=pink]{Added \autoref{fig:krylovapproximationcputime} which compares the CPU time.}
 In \autoref{fig:krylovapproximationcputime}, the process time of each method is presented for
 the matrices $A_1$ and $A_2$ with different smallest eigenvalues against their sizes. For
 the PA and RA methods, the reported process time corresponds to the minimum number of
@@ -1028,21 +988,13 @@ starts being less efficient than the reference solution when the smallest eigenv
 to $-\infty$. The reason for this is that as mentioned before, the PA method needs more
 and more iterations to converge when $\lambda \to \infty$.
 
-\todo[color=pink]{Added \autoref{fig:rationalkrylovpoleselection} which compares the pole selection of RA.}
 \todo{Comment on \autoref{fig:rationalkrylovpoleselection}.}
 \begin{comment}
     - RA-AAA10 works the best among these
     - RA-AAA10 has a pattern after each 10 m's
     - The same pattern seems to exist for AAA5 and AAA3
-    - RA-BRASIL's behave very close to RA-AAA although the poles are different
     - RA-AAAm fails after around m=20, possibly because of the AAA algorithm
     - It gets better for larger lambda??
-\end{comment}
-
-\todo[color=pink]{Added \autoref{fig:rationalkrylovpoleselectionbrasil} which compares BRASIL and AAA.}
-\todo{Comment on \autoref{fig:rationalkrylovpoleselectionbrasil}.}
-\begin{comment}
-    - They perform similarly in p=0 but BRASIL outperforms AAA as p grows.
 \end{comment}
 
 \begin{figure}[h]
@@ -1055,27 +1007,15 @@ and more iterations to converge when $\lambda \to \infty$.
     \label{fig:rationalkrylovpoleselection}
 \end{figure}
 
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=.9\textwidth]{img/AAA/cnvg_poles_n10000_eigs_BRASIL.png}
-    \caption{
-        Convergence of the approximation \eqref{eq:rationalkrylovapproximation} with different
-        rational function approximation methods for $A_1$, $\lambda = 10^5$ and $n=10^4$.
-    }
-    \label{fig:rationalkrylovpoleselectionbrasil}
-\end{figure}
-
 \FloatBarrier
 \subsection{Trigonometric Matrix Functions}
-\todo[color=pink]{Added this section for the new experiments.}
 \todo{Describe the context and linear elasticity.}
 \subsubsection*{Test Matrices}
 \todo{Describe the linear elasticity matrices.}
 \subsubsection*{Pole Selection}
 \todo{Describe the pole selection and the reason behind it.}
 \todo[color=gray]{
-    Only AAA1 because the BRASIL seems to be unstable for these matrices.
-    Also, AAAn performs the best with n=1.
+    AAAn performs the best with n=1.
 }
 \todo[color=gray]{
     I use 1000 points on the spectral interval of the input matrix.
@@ -1103,8 +1043,3 @@ and more iterations to converge when $\lambda \to \infty$.
         }
         \label{fig:trigonometricconvergencemethods}
 \end{figure}
-
-\todo[color=pink]{
-    I also tried for the matrices of the Laplace equation scaled the spectral interval $(\epsilon, 1e+07)$.
-    the results were even a bit worse regarding the time step.
-}
