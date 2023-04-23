@@ -35,7 +35,7 @@ This is simply because $A^k = \diag(\lambda_i^k)_{i=0}^{n}$ for any $k$.
 For any invertible matrix $P \in \mathbb{C}^{n \times n}$, we have
 \begin{equation}
     \label{eq:matrixfunctioninvertible}
-    f(A) = p(A) = Pp(P^{-1}AP)P^{-1} = Pf(P^{-1}AP)P^{-1}
+    f(A) = g(A) = Pg(P^{-1}AP)P^{-1} = Pf(P^{-1}AP)P^{-1}
 \end{equation}
 
 If $A$ is diagonalizable, say $P^{-1}AP = \diag(\lambda_i)_{i=1}^{n} =: \Lambda$,
@@ -73,14 +73,14 @@ Some properties of the matrix exponential follows:
 \begin{figure}[h]
     \centering
     \includegraphics[width=.7\textwidth]{img/scalarcomplexplane.png}
-    \caption{Evaluation of scalar $\varphi$-functions on the complex plane.}
+    \caption{Evaluation of scalar $\varphi$-functions on the complex plane. The values that are out of the range of the color bar are not visualized.}
     \label{fig:scalarphifunctionscomplexplane}
 \end{figure}
 
 
 \subsection{\texorpdfstring{$\varphi$}{Phi}-functions}
 \todo[color=cyan]{Add applications and motivation.}
-There are a group of matrix functions called $\varphi$-functions that are essential
+There is a class of matrix functions called $\varphi$-functions that are essential
 for exponential integrators for ordinary differential equations. Accurate and efficient
 evaluation of these functions is necessary for implementation of exponential integrators.
 For a scalar argument $z \in \mathbb{C}$, they are defined~\cite{higham2008functions} as
@@ -182,8 +182,8 @@ $f(x, y)$ is a linear operator on $\mathbb{C}^{n \times m}$ and is
 defined~\cite{kressner2014bivariate} by $f\{A, B\} := p\{A, B\}$, where $p$ is the
 unique Hermite interpolating polynomial which satisfies
 \begin{equation*}
-    \frac{\partial^{g+h}}{\partial x^g y^h}g(\lambda_i, \mu_j)
-    = \frac{\partial^{g+h}}{\partial x^g y^h}f(\lambda_i, \mu_j),
+    \frac{\partial^{g+h}}{\partial^g x \partial^h y}p(\lambda_i, \mu_j)
+    = \frac{\partial^{g+h}}{\partial^g x \partial^h y}f(\lambda_i, \mu_j),
     \quad
     \begin{matrix}
         \forall g \in \{0, 1, \dots, ind_{\lambda_i(A)}-1\},
@@ -200,7 +200,7 @@ are continuous.
 \section{Methodology}\label{sec:methods}
 
 \subsection{Krylov Subspaces and the Arnoldi Algorithm}\label{sec:arnoldi}
-Given a matrix $A \in \mathbb{C}^{n \times n}$ and a vector $v \neq 0 \in \mathbb{C}$,
+Given a matrix $A \in \mathbb{C}^{n \times n}$ and a vector $v \neq 0 \in \mathbb{C}^n$,
 the Krylov subspace of order $m \leq n$ for them is defined \cite{golub2013matrix} as
 \begin{equation}
     \label{eq:krylovsubspacedefinition}
@@ -227,10 +227,10 @@ where $e_m$ is the last canonical basis vector of $\mathbb{R}^{m}$.
 \begin{algorithm}
     \caption{Arnoldi algorithm}
     \label{alg:polynomialarnoldi}
-    \KwIn{Matrix $A \in \mathbb{C}^{n \times n}$, vector $v \in \mathbb{C} \backslash \{0\}$, $m \le n \in \mathbb{N}$}
-    \KwOut{Orthonormal basis $V_m = (v_1, v_2, \dots, v_m, v_{m+1})$ of $\mathcal{K}_m(A, v)$}
+    \KwIn{Matrix $A \in \mathbb{C}^{n \times n}$, vector $v \in \mathbb{C}^n \backslash \{0\}$, $m \le n \in \mathbb{N}$}
+    \KwOut{Orthonormal basis $V_m = (v_1, v_2, \dots, v_m)$ of $\mathcal{K}_m(A, v)$}
     Set $v_1 = v / \left\| v \right\|_2$\;
-    Set $V_1 = v$\;
+    Set $V_1 = v_1$\;
     \For{$j = 1, 2, \dots, m$}{
         Compute $w = A v_j$\;
         Compute $h_j = V_j^* w$\;
@@ -303,7 +303,7 @@ the projection of the action of $A$ on this Krylov subspace $H_m = V_m^* A V_m$.
 \end{proof}
 
 We approximate $f(A)v$ by $f(V_m H_m V_m^*)v$. Beacuse of orthogonality
-of the columns of $V_m$, it could be easily shown that for any $k \in \mathbb{N}$,
+of the columns of $V_m$, it can be easily shown that for any $k \in \mathbb{N}$,
 \begin{equation*}
     \label{eq:reprojectionpower}
     (V_m H_m V_m^*)^{k} = V_m H_m^k V_m^*,
@@ -313,7 +313,7 @@ that $f(V_m H_m V_m^*)v = V_m f(H_m) V_m^* v$.
 Because all columns of $V_m$ except the first one are orthogonal to $v$, we have
 $V_m^* v = \left\| v \right\|_{2} e_1$, where $e_1$ is the first vector in the
 canonical basis of $\mathbb{R}^n$.
-Putting all the pieces together, the approximation could be written as
+Putting all the pieces together, the approximation can be written as
 \begin{equation}
     \label{eq:polynomialkrylovapproximation}
     f(A)v \simeq \left\| v \right\|_{2} V_m f(H_m) e_1 =: \mathbf{f_{m}^{PA}}.
@@ -396,8 +396,8 @@ smaller than $A$.
     \end{equation*}
     After each multiplication, we get the previous column of $\hat{M}$ until we reach
     the $n+1$\textsuperscript{th} column for $k=p$,
-    $(\hat{M}^p)_{[:, n+p]} = \begin{bmatrix}e_1^\top & 0 & 0\end{bmatrix}^\top$,
-    which is consistent with \eqref{eq:embeddedmatrixpowered}.
+    $(\hat{M}^p)_{[:, n+p]} = \begin{bmatrix}u^\top & 0 & 0\end{bmatrix}^\top$,
+    which is consistent with the lemma.
     With this, for $k \ge p+1$ we have
     \begin{equation*}
         \begin{aligned}
@@ -482,14 +482,14 @@ The following theorem gives an upper bound for the approximation \eqref{eq:polyn
     Let $A \in \mathbb{C}^{n \times n}$ be a Hermitian matrix. For a general scalar
     function $f: \mathbb{C} \to \mathbb{C}$ that is analytic on a domain
     $\Omega \subset \mathbb{C}$ containing the spectrum of $A$,
-    $\Lambda(A) \subset \mathbb{R}$, the error of the approximation
+    $\Lambda(A) \subset [\alpha, \beta] \subset \mathbb{R}$, the error of the approximation
     $f_m := \left\| v \right\|_{2} V_m f(H_m) e_1$ is bounded by the maximum error
-    of the polynomial that approximates $f$ the best in $\Omega$:
+    of the polynomial that approximates $f$ the best in $[\alpha, \beta]$:
     \begin{equation}
         \label{eq:univariateerrorestimationgeneral}
         \left\| f(A)v - f_m \right\|_2 \le
         2 \left\| v \right\|_2 \min_{g \in \Pi_{m-1}}
-        \max_{z \in \Lambda(A)} \left|f(z) - g(z) \right|
+        \max_{z \in [\alpha, \beta]} \left|f(z) - g(z) \right|
     \end{equation}
 \end{theorem}
 \begin{proof}
@@ -505,11 +505,11 @@ The following theorem gives an upper bound for the approximation \eqref{eq:polyn
                 + \left\| v \right\|_{2}
                 \left\| V_m [g(H_m) e_1 - f(H_m) e_1] \right\|_2\\
             & \le \left\| v \right\|_2 \left( \left\| e(A) \right\|_2 + \left\| e(H_m) \right\|_2 \right)\\
-            & \le 2 \left\| v \right\|_2 \max_{z \in \Lambda(A)} \left| e(z) \right|.
+            & \le 2 \left\| v \right\|_2 \max_{z \in [\alpha, \beta]} \left| e(z) \right|.
             \end{aligned}
     \end{equation*}
     % CHECK: How so?
-    In the last step, we used that $\Lambda(H_m) \subset \Lambda(A) \subset \Omega$
+    In the last step, we used that $\Lambda(H_m) \subset [\alpha, \beta]$
     holds due to eigenvalue interlacing.
 \end{proof}
 
@@ -523,37 +523,37 @@ which results in the following lemma.
 % H. Tal-Ezer, Polynomial approximation of functions of matrices and applications, J. Sci. Comput. 4 (1989), pp. 25–60
 \begin{lemma}
     \label{lem:univariateerrorestimationphitaylor}
-    For a phi-function $\varphi_p(z)$ defined in \eqref{eq:scalarphifunctionsclosedform}
+    For a $\varphi$-function $\varphi_p(z)$ defined in \eqref{eq:scalarphifunctionsclosedform}
     and a Hermitian matrix $A \in \mathbb{C}^{n \times n}$ with the spectrum
-    $\Lambda(A) \subset [-\alpha, 0] \subset \mathbb{R}$ for $\alpha > 0$,
+    $\Lambda(A) \subset [-\lambda, 0] \subset \mathbb{R}$ for $\lambda > 0$,
     the error of the approximation
     $\varphi_{p, m} := \left\| v \right\|_{2} V_m \varphi_p(H_m) e_1$
-    scales with $\alpha^m$:
+    scales with $\lambda^m$:
     \begin{equation}
         \label{eq:univariateerrorestimationphitaylor}
         \left\| \varphi_p(A)v - \varphi_{p, m} \right\|_2 \le 2 \left\| v \right\|_2
-        \frac{\alpha^m}{(m+p)!}
+        \frac{\lambda^m}{(m+p)!}
     \end{equation}
 \end{lemma}
 \begin{proof}
     We replace the exponential in \eqref{eq:scalarphifunctionsclosedform} by its
-    truncated Taylor expansion around zero and we keep the first $m+p-1$ to get
+    truncated Taylor expansion around zero and we keep the first $m+p-1$ terms to get
     \begin{equation*}
         \begin{aligned}
             \varphi_p(z) & = z^{-p} \left( \sum_{k=0}^{m+p-1}{\frac{1}{k!}z^k}
                 + \frac{1}{(m+p)!} \abs{z}^{m+p} \exp(z') - \sum_{k=0}^{p-1}{\frac{1}{k!}z^{k}} \right)\\
             & = z^{-p} \left( \sum_{k=p}^{m+p-1}{\frac{1}{k!}z^k} + \frac{1}{(m+p)!} \abs{z}^{m+p} \exp(z') \right)\\
-            & \le \sum_{k=0}^{m-1}{\frac{1}{(k+p)!}z^k} + \frac{1}{(m+p)!} \abs{z}^{m}, \quad \forall z \in \Lambda(A)
+            & \le \sum_{k=0}^{m-1}{\frac{1}{(k+p)!}z^k} + \frac{1}{(m+p)!} \abs{z}^{m}, \quad \forall z \in [-\lambda, 0]
             \end{aligned}
     \end{equation*}
-    where $-\alpha \le z' \le 0$. In the last step, we used $\exp(z') \le 1$ for all
+    where $z' \in [z, 0] \subseteq [-\lambda, 0]$. In the last step, we used $\exp(z') \le 1$ for all
     non-positive $z'$. By choosing $g(z) = \sum_{k=0}^{m-1}{\frac{1}{(k+p)!}z^k}$ and
-    taking the maximum of the absolute value of both sides for $z \in \Lambda(A)$,
+    taking the maximum of the absolute value of both sides for $z \in [-\lambda, 0]$,
     we can write
     \begin{equation*}
-        \max_{z \in \Lambda(A)}\left| \varphi_p(z) - g(z) \right|
-        \le \frac{1}{(m+p)!} \max_{z \in \Lambda(A)}\abs{z}^{m}
-        = \frac{1}{(m+p)!} \alpha^m.
+        \max_{z \in [-\lambda, 0]}\left| \varphi_p(z) - g(z) \right|
+        \le \frac{1}{(m+p)!} \max_{z \in [-\lambda, 0]}\abs{z}^{m}
+        = \frac{1}{(m+p)!} \lambda^m.
     \end{equation*}
     With this, we have found a polynomial $g \in \Pi_{m-1}$ that has this error bound,
     so we can be sure that the minimum of the error bound over all polynomials in
@@ -565,11 +565,11 @@ Using the polynomial approximation given in \cite[Lemma A.1]{kressner2019krylov}
 we can get a better error bound for approximating $\varphi_1(A)v$.
 The polynomial approximation states that
 \begin{equation}
-    \min_{g \in \Pi_{m-1}} \max_{z \in [-\alpha, 0]} \left|\varphi_1(z) - g(z) \right| \le
+    \min_{g \in \Pi_{m-1}} \max_{z \in [-\lambda, 0]} \left|\varphi_1(z) - g(z) \right| \le
     \begin{cases}
-        \frac{5\alpha^2}{2m^3} \exp \left( -\frac{4m^2}{5\alpha} \right) & \sqrt{\alpha} \le m \le \frac{\alpha}{2}
+        \frac{5\lambda^2}{2m^3} \exp \left( -\frac{4m^2}{5\lambda} \right) & \sqrt{\lambda} \le m \le \frac{\lambda}{2}
         \\
-        \frac{32}{12m-5\alpha} \left( \frac{e \alpha}{4m+2\alpha} \right)^m & m \ge \frac{\alpha}{2}
+        \frac{32}{12m-5\lambda} \left( \frac{e \lambda}{4m+2\lambda} \right)^m & m \ge \frac{\lambda}{2}
     \end{cases}.
 \end{equation}
 Using this polynomial approximation error bound and combining it with
@@ -577,20 +577,20 @@ Using this polynomial approximation error bound and combining it with
 Arnoldi method approximation of $\varphi_1(A)v$ for Hermitian matrices.
 \begin{theorem}
     \label{the:univariateerrorestimationchebyshev}
-    For the phi-function $\varphi_1(z)$ defined in \eqref{eq:scalarphifunctionsclosedform}
+    For the $\varphi$-function $\varphi_1(z)$ defined in \eqref{eq:scalarphifunctionsclosedform}
     and a Hermitian matrix $A \in \mathbb{C}^{n \times n}$ with the spectrum
-    $\Lambda(A) \subset [-\alpha, 0] \subset \mathbb{R}$ for $\alpha > 0$,
+    $\Lambda(A) \subset [-\lambda, 0] \subset \mathbb{R}$ for $\lambda > 0$,
     the error of the approximation $\varphi_{1, m} := \left\| v \right\|_{2} V_m \varphi_1(H_m) e_1$
-    scales with $\alpha$ as
+    scales with $\lambda$ as
     \begin{equation}
         \label{eq:univariateerrorestimationphi1}
         \left\| \varphi_1(A)v - \varphi_{1, m} \right\|_2 \le
         \begin{cases}
-            \left\| v \right\|_2 \frac{5\alpha^2}{m^3} \exp \left( -\frac{4m^2}{5\alpha} \right)
-            & \sqrt{\alpha} \le m \le \frac{\alpha}{2}
+            \left\| v \right\|_2 \frac{5\lambda^2}{m^3} \exp \left( -\frac{4m^2}{5\lambda} \right)
+            & \sqrt{\lambda} \le m \le \frac{\lambda}{2}
             \\
-            \left\| v \right\|_2 \frac{64}{12m-5\alpha} \left( \frac{e \alpha}{4m+2\alpha} \right)^m
-            & m \ge \frac{\alpha}{2}
+            \left\| v \right\|_2 \frac{64}{12m-5\lambda} \left( \frac{e \lambda}{4m+2\lambda} \right)^m
+            & m \ge \frac{\lambda}{2}
         \end{cases}
     \end{equation}
 \end{theorem}
@@ -602,7 +602,7 @@ algorithm to get an orthonormal basis for $\mathcal{Q}_m(A, v)$ and an upper
 Hessenberg matrix $H_m$. We then approximate $f(A)v$ by
 $f(V_m A_m V_m^*)v$ where $A_m = V_m^* A V_m$. If $\xi_m = \infty$,
 it could be easily shown from \eqref{eq:rationalarnoldifactorization} that
-$A_m = H_m K_m^{-1}$ where $K_m = I_m + H_m D_m$. with similar arguments
+$A_m = H_m K_m^{-1}$ where $K_m = I_m + H_m D_m$. With similar arguments
 as in the previous section, we can write the approximation as
 \begin{equation}
     \label{eq:rationalkrylovapproximation}
@@ -614,29 +614,29 @@ $\exp(\hat{A}_m)$, with $\hat{A}_m$ defined in \eqref{eq:embeddedmatrixdefinitio
 for the matrix-vector pair $(A_m, e_1)$.
 
 \subsubsection{Pole Selection}
-\todo[color=pink]{Added this section on pole selection.}
+\todo[color=pink]{Added this section on pole selection. I present here the AAA and the BRASIL algorithms.}
 
 Before building a rational Krylov subspace and do the steps in the modified Arnoldi
 algorithm, we need to specify the poles of the rational functions in this subspace.
-The choice of the poles is an important task sicne it restricts the functions present
+The choice of the poles is an important task since it restricts the functions present
 in the subspace. It could be shown (see Corollary 3.4 in \cite{guttel2013rational}) that
 the rational Krylov approximation satisfies
 \begin{equation*}
     \left\| f(A)v - f_m^{RA}  \right\|_2 \le 2 C \left\| v \right\|_2
     \min_{r_m \in \mathcal{Q}_{m}} \max_{z \in \Sigma} \left\| f(z) - r_m(z) \right\|_2
 \end{equation*}
-with a constanc $C \le 11.08$, assuming that $f$ is analytic in the neighbourhood of
+with a constant $C \le 11.08$, assuming that $f$ is analytic in the neighbourhood of
 a compact set $\Sigma \supseteq \mathcal{W}(A)$, where $\mathcal{W}(A)$ is the numerical range
-of the matrix $A$ and defined as
+of the matrix $A$ and is defined as
 \begin{equation}
     \label{eq:numericalrange}
-    \mathcal{W}(A) = \{x^* A x \:|\: x \in \mathbb{C}^{n \times n} \backslash {0} \}.
+    \mathcal{W}(A) = \{x^* A x \:|\: x \in \mathbb{C}^{n}, \|x\|_2=1\}.
 \end{equation}
 The goal is to choose the poles such that the rational Krylov subspace contains a good approximant
 of $f(z)$ in the set $\Sigma$.
 \begin{comment}
     The choice of optimal poles for the exponential function is well-studied in the literature.
-    Phi-functions are similar to exponential.
+    $\varphi$-functions are similar to exponential.
     For unbounded $\Sigma$ and a single parameter, a single repeated pole has been suggested.
     Generalized Leja points
     Solving a Zoloterov problem
@@ -645,7 +645,7 @@ of $f(z)$ in the set $\Sigma$.
 The AAA algorithm, introduced in \cite{nakatsukasa2018AAA}, takes advantage of the barycentric
 representation of rational functions and approximates a function by interpolating it at a number
 of nodes that are chosen among a large number of nodes given on a domain in the complex plane.
-On each iteration, they choose the next interpolation point by a greedy algorithm which picks
+At each iteration, they choose the next interpolation point by a greedy algorithm which picks
 the point that has the maximum absolute residual on that iteration. The poles of the rational
 function could then be easily computed.
 The BRASIL algorithm introduced in \cite{hofreither2021BRASIL} is another algorithm for
@@ -656,7 +656,7 @@ representation of rational functions but it is not restricted to a set of interp
 points given by the user. We should keep in mind that since it only supports the real scalar
 functions, the poles selected by this algorithm might not be suitable for non-Hermitian matrices.
 One limitation of both these algorithms is that since they work based on the interpolation points,
-they don't allow for restricting the poles, and work like a black-box regarding the pole selection.
+they do not allow for restricting the poles, and work like a black-box regarding the pole selection.
 
 \subsection{Reference Evaluations}
 \label{sec:exactevaluation}
@@ -669,7 +669,7 @@ they don't allow for restricting the poles, and work like a black-box regarding 
 
 In this subsection, we describe the methods that are used for computing the reference
 evaluations of the action of different matrix functions on vectors for large sparse matrices.
-we use this evaluations to calculate the error of the approximation methods.
+We use these evaluations to calculate the error of the approximation methods.
 
 \todo[color=cyan]{Add the recursive algorithm}
 \begin{comment}
@@ -695,15 +695,16 @@ $e_{n+p} = [0\:0\:\cdots\:1]^\top$, which gives its last column:
 We use the \texttt{scipy.sparse.linalg.expm\_multiply} function from
 the SciPy library~\cite{SciPy2020} for this purpose.
 
+% TODO: simply express cos(A) and sin(A) using the matrix exponential and then use the same python function with the vector v.
 For computing the action of $\cos(A)$ and $\sin(A)$ on $v$, we take advantage of Corollary
 \ref{cor:embeddedmatrixsineandcosine} and combine it with the properties of trigonometric
 matrix functions described in \autoref{sec:trigonometricmatrixfunctions} to get
 \begin{equation*}
-        \cos(A) v = v + cos(\hat{A})_{[1 : n, n+1]}
+        \cos(A) v = v + \cos(\hat{A})_{[1 : n, n+1]}
         = v + \frac{1}{2} (e^{i\hat{A}}_{[1 : n, n+1]} + e^{-i\hat{A}}_{[1 : n, n+1]}),
 \end{equation*}
 \begin{equation*}
-        \sin(A) v = sin(\hat{A})_{[1 : n, n+1]}
+        \sin(A) v = \sin(\hat{A})_{[1 : n, n+1]}
         = \frac{1}{2i} (e^{i\hat{A}}_{[1 : n, n+1]} - e^{-i\hat{A}}_{[1 : n, n+1]}),
 \end{equation*}
 where $\hat{A}$ is defined in \eqref{eq:embeddedmatrixdefinition} for the matrix-vector
@@ -738,7 +739,7 @@ of $\sin(\hat{A})$ with $\hat{A}$ being defined by
 
 In this section, the implementations of the methods described in \autoref{sec:methods}
 are presented and evaluated. In order to test the methods, we consider stiffness
-matrices that appear in solving 1D and 2D Laplace equation by the finite difference
+matrices that appear in solving 1D and 2D Laplace equations by the finite difference
 method using a uniform mesh. These matrices are sparse, real, and symmetric positive definite.
 They are obtained by
 \begin{equation*}
@@ -883,21 +884,20 @@ We use the \texttt{baryrat} library introduced in \cite{hofreither2021BRASIL} wh
 the AAA and the BRASIL algorithms for rational approximations. One downside of using these algorithms
 is the additional computational cost that they bring for computing the poles.
 The AAA algorithm  computes the residual of the approximation on all the given interpolation points at
-each iteration. Hence, for approximating a rational function of degreee $m$, its computation cost scales
+each iteration. Hence, for approximating a rational function of degree $m$, its computation cost scales
 as $O(mn)$ where $n$ is the number of interpolation points given as input.
 Furthermore, since this algorithm computes the poles based on the interpolation points, the
 selected poles by this algorithm are very sensitive to the discretization of the interpolation domain.
-Considering the $[-\lambda, -\epsilon] \in \mathbb{R}$ interval, the sufficient number of the interpolation
+Considering the $[-\lambda, -\epsilon] \subset \mathbb{R}$ interval, the number of interpolation
 points for the AAA algorithm to work accurately scales with $\lambda$, which becomes a real burden
 when $\lambda \to \infty$. However, as depicted in \autoref{fig:poles}, numerical results show that
 for this interval, the computed poles converge quite early when $\lambda$ is increased. We take
 advantage of this behaviour and we always compute the poles by the AAA algorithm with 1000 interpolation
 points spaced linearly on the interval $[-1000, -\epsilon]$.
 
-For a rational Krylov subspace of order $m$, first we compute $n \le m$ poles $\eta_1, \dots, \eta_n$
-by either the AAA or the BRASIL algorithm and we set the poles $\xi_1, \dots, \xi_m$ such that
-$\xi_{1j} = \eta_1, \xi_{2j} = \eta_2, \dots, \xi_{nj} = \eta_n$ for $j = 1, 2, \dots$. With this
-scheme for the pole selection, the RA method is denoted by RA-AAAn or RA-BRASILn. We also consider
+For a rational Krylov subspace of order $m$, first we compute $k \le m$ poles $\eta_1, \dots, \eta_k$
+by either the AAA or the BRASIL algorithm and we repeat them enough times to fill the $m$ poles $\xi_1, \dots, \xi_m$. With this
+scheme for the pole selection, the RA method is denoted by RA-AAAk or RA-BRASILk where k is replaced by its number. We also consider
 the case with a single repeated pole $\xi_1 = \xi_2 = \cdots = \xi_{m} = 1$ and we deonte it by
 RA-ONES.
 
@@ -959,7 +959,7 @@ for different matrices. The relative error is computed as:
         \label{fig:rationalkrylovapproximationevaluation}
     \end{subfigure}
     \caption{
-        Convergence of the apprixmations \eqref{eq:polynomialkrylovapproximation}
+        Convergence of the approximations \eqref{eq:polynomialkrylovapproximation}
         and \eqref{eq:rationalkrylovapproximation} for matrices of size $n=10000$.
     }
     \label{fig:krylovapproximationevaluation}
@@ -971,9 +971,9 @@ We observe that both methods always converge slightly faster for larger $p$'s.
 This observation is consistent with the error bound provided in Lemma
 \ref{lem:univariateerrorestimationphitaylor}, where we can see that increasing $p$ slightly
 improves the bound. This slight improvement could also be justified by looking at the
-$\varphi$-functions on the scalar complex plane. As depicted in
+$\varphi$-functions on the complex plane. As depicted in
 \autoref{fig:scalarphifunctionscomplexplane}, when $p$ is increased, the
-$\varphi$-function grows more smoothly and thus could be approximated better with a
+function $\varphi_p$ grows more slowly and thus it could be approximated better with a
 polynomial of a fixed degree. Therefore, the polynomial Krylov approximation needs
 less iterations to reach a certain tolerance according to Theorem
 \ref{the:univariateerrorestimationgeneral}.
@@ -1005,13 +1005,13 @@ of the matrix.
     \label{fig:krylovapproximationcputime}
 \end{figure}
 
-\autoref{fig:krylovapproximationmatrices} compares the convergenece of the
+\autoref{fig:krylovapproximationmatrices} compares the convergence of the
 test matrices with the same spectral interval, thus, the same smallest and largest
 eigenvalues.
 With $\lambda = 1000$, the method converges with almost the same rate for all
 the test matrices, which is very close the same rate estimated in
 \eqref{eq:univariateerrorestimationphi1}.
-As $\lambda$ gets larger, we observe that the convergene for the matrices
+As $\lambda$ gets larger, we observe that the convergence for the matrices
 $A_2$ and $A_5$ get considerably faster than the other matrices and the error estimate.
 What these two matrices have in common is that the distributions of their eigenvalues
 (see \autoref{fig:eigenvaluedistributions}) are less dense on the right side of their
