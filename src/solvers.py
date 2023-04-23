@@ -481,6 +481,70 @@ class Cosine(MatrixFunction):
     def __repr__(self) -> str:
         return f'Cosine(t={self.t:.0e})'
 
+class CosineSqrt(MatrixFunction):
+    """Class for computing $\cos(t \sqrt{A}) v$"""
+
+    def __init__(self, t: float = 1.):
+        super().__init__()
+        self.t = t
+
+    def scalar(self, z: complex) -> complex:
+        return np.cos(self.t * np.sqrt(z))
+
+    def exact_dense(self, A: Matrix, v: np.ndarray) -> np.ndarray:
+        """Computes the action of the matrix function on a vector by converting it to a dense matrix."""
+
+        # Check dimensions
+        n = len(v)
+        assert A.shape == (n, n), f'{A.shape} != {(n, n)}'
+
+        # Convert A to dense matrixs
+        if sps.issparse(A):
+            A = A.toarray()
+
+        # Calculate the square root of A
+        H = la.sqrtm(A)
+
+        return la.cosm(self.t * H) @ v
+
+    def exact(self, A: SparseMatrix, v: np.ndarray) -> np.ndarray:
+        """Computes the action of the matrix function on a vector by building the corresponding embedded matrix."""
+
+        # Check dimensions
+        n = len(v)
+        dtype = A.dtype
+        assert A.shape == (n, n), f'{A.shape} != {(n, n)}'
+
+        # Calculate the square root
+        if sps.issparse(A):
+            H = la.sqrtm(A.toarray())
+        else:
+            H = la.sqrtm(A)
+
+        # Construct the embedded matrix
+        A_h = sps.lil_matrix(np.zeros(shape=(n+1, n+1), dtype=dtype))
+        A_h[:n, :n] = self.t * H
+        A_h[:n, n] = self.t * H @ v
+        if A.format == 'csc':
+            A_h = A_h.tocsc()
+        elif A.format == 'csr':
+            A_h = A_h.tocsr()
+
+        # Compute the last column of the exponential of the embedded matrix
+        enpp = np.zeros(shape=(n+1,), dtype=dtype)
+        enpp[-1] = 1
+
+        if dtype == 'complex':
+            return (v + .5 * (spla.expm_multiply(1j * A_h, enpp)[:n] + spla.expm_multiply(-1j * A_h, enpp)[:n]))
+        else:
+            return (v + spla.expm_multiply(1j * A_h, enpp)[:n].real)
+
+    def __str__(self) -> str:
+        return '$\\cos(t \sqrt{A})$'
+
+    def __repr__(self) -> str:
+        return f'CosineSqrt(t={self.t:.0e})'
+
 class Sine(MatrixFunction):
     """Class for computing $sin(tA) v$"""
 
