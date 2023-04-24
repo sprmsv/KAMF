@@ -36,9 +36,11 @@ def get_test_matrices(n: int, interval: tuple[float], eigs: dict = None):
     # Diagonal uniformly distributed eigenvalues
     A3 = sps.diags(np.linspace(a, b, n))
     # Diagonal geometrically distributed eigenvalues
-    A4 = sps.diags(+np.geomspace(a, b, n))
+    b_ = b or b + np.sign(a) * 1e-16
+    A4 = sps.diags(+np.geomspace(a, b_, n))
     # Diagonal reversed geometrically distributed eigenvalues
-    A5 = sps.diags(-np.geomspace(a, b, n) + b + a)
+    b_ = b or b + np.sign(a) * 1e-16
+    A5 = sps.diags((-np.geomspace(a, b_) + b_ + a)[::-1])
 
     return A1, A2, A3, A4, A5
 
@@ -129,15 +131,15 @@ def get_convergence(
     pbar = tqdm(total=len(funcs), desc='Matrix functions', leave=False)
     for f in funcs:
         # Refresh the progress bar
-        pbar.desc = f'Matrix functions: {repr(f)})'
+        pbar.desc = f'Matrix functions: {repr(f)}'
         pbar.total = len(funcs)
         pbar.refresh()
 
-        pbar.desc = f'Matrix functions: {repr(f)})'
+        pbar.desc = f'Matrix functions: {repr(f)}'
         pbar.refresh()
 
         # Create the inside progress bar
-        pbar_method = tqdm(total=3, desc='Methods', leave=False)
+        pbar_method = tqdm(total=8, desc='Methods', leave=False)
 
         # Get the reference evaluation
         pbar_method.desc = f'Methods: EX'
@@ -171,20 +173,20 @@ def get_convergence(
         pbar_method.update()
 
         # Get RA-ONES error
-        # pbar.desc = f'Methods: RA-ONES'
-        # pbar.refresh()
-        # for m in ms_RA:
-        #     data['f'].append(str(f))
-        #     data['m'].append(m)
-        #     data['method'].append('RA-ONES')
-        #     poles = np.array([1] * m)
-        #     start = process_time()
-        #     krylov = f.rationalkrylov(A=A, v=v, m=m, poles=poles)
-        #     elapsed = process_time() - start
-        #     err = relative_error(approximation=krylov, exact=exact)
-        #     data['err'].append(err)
-        #     data['time'].append(elapsed)
-        # pbar_method.update()
+        pbar_method.desc = f'Methods: RA-ONES'
+        pbar_method.refresh()
+        for m in ms_RA:
+            data['f'].append(str(f))
+            data['m'].append(m)
+            data['method'].append('RA-ONES')
+            poles = np.array([1] * m)
+            start = process_time()
+            krylov = f.rationalkrylov(A=A, v=v, m=m, poles=poles)
+            elapsed = process_time() - start
+            err = relative_error(approximation=krylov, exact=exact)
+            data['err'].append(err)
+            data['time'].append(elapsed)
+        pbar_method.update()
 
         # Get the interval and the AAA discretization
         a, b = interval
@@ -212,22 +214,22 @@ def get_convergence(
         pbar_method.update()
 
         # Get RA-AAA3 error
-        # pbar_method.desc = f'Methods: RA-AAA3'
-        # pbar_method.refresh()
-        # r = aaa(Z=Z, F=f.scalar, mmax=4, tol=-1)
-        # rpoles = r.poles()
-        # for m in ms_RA:
-        #     data['f'].append(str(f))
-        #     data['m'].append(m)
-        #     data['method'].append('RA-AAA3')
-        #     poles = np.concatenate([rpoles] * (m // len(rpoles) + 1))[:m]
-        #     start = process_time()
-        #     krylov = f.rationalkrylov(A=A, v=v, m=m, poles=poles)
-        #     elapsed = process_time() - start
-        #     err = relative_error(approximation=krylov, exact=exact)
-        #     data['err'].append(err)
-        #     data['time'].append(elapsed)
-        # pbar_method.update()
+        pbar_method.desc = f'Methods: RA-AAA3'
+        pbar_method.refresh()
+        r = aaa(Z=Z, F=f.scalar, mmax=4, tol=-1)
+        rpoles = r.poles()
+        for m in ms_RA:
+            data['f'].append(str(f))
+            data['m'].append(m)
+            data['method'].append('RA-AAA3')
+            poles = np.concatenate([rpoles] * (m // len(rpoles) + 1))[:m]
+            start = process_time()
+            krylov = f.rationalkrylov(A=A, v=v, m=m, poles=poles)
+            elapsed = process_time() - start
+            err = relative_error(approximation=krylov, exact=exact)
+            data['err'].append(err)
+            data['time'].append(elapsed)
+        pbar_method.update()
 
         # Get RA-AAA5 error
         pbar_method.desc = f'Methods: RA-AAA5'
@@ -248,39 +250,39 @@ def get_convergence(
         pbar_method.update()
 
         # Get RA-AAA10 error
-        # pbar_method.desc = f'Methods: RA-AAA10'
-        # pbar_method.refresh()
-        # r = aaa(Z=Z, F=f.scalar, mmax=11, tol=-1)
-        # rpoles = r.poles()
-        # for m in ms_RA:
-        #     data['f'].append(str(f))
-        #     data['m'].append(m)
-        #     data['method'].append('RA-AAA10')
-        #     poles = np.concatenate([rpoles] * (m // len(rpoles) + 1))[:m]
-        #     start = process_time()
-        #     krylov = f.rationalkrylov(A=A, v=v, m=m, poles=poles)
-        #     elapsed = process_time() - start
-        #     err = relative_error(approximation=krylov, exact=exact)
-        #     data['err'].append(err)
-        #     data['time'].append(elapsed)
-        # pbar_method.update()
+        pbar_method.desc = f'Methods: RA-AAA10'
+        pbar_method.refresh()
+        r = aaa(Z=Z, F=f.scalar, mmax=11, tol=-1)
+        rpoles = r.poles()
+        for m in ms_RA:
+            data['f'].append(str(f))
+            data['m'].append(m)
+            data['method'].append('RA-AAA10')
+            poles = np.concatenate([rpoles] * (m // len(rpoles) + 1))[:m]
+            start = process_time()
+            krylov = f.rationalkrylov(A=A, v=v, m=m, poles=poles)
+            elapsed = process_time() - start
+            err = relative_error(approximation=krylov, exact=exact)
+            data['err'].append(err)
+            data['time'].append(elapsed)
+        pbar_method.update()
 
         # Get RA-AAAm error
-        # pbar_method.desc = f'Methods: RA-AAAm'
-        # pbar_method.refresh()
-        # for m in ms_RA:
-        #     data['f'].append(str(f))
-        #     data['m'].append(m)
-        #     data['method'].append('RA-AAAm')
-        #     r = aaa(Z=Z, F=f.scalar, mmax=(m + 1), tol=-1)
-        #     poles = r.poles()
-        #     start = process_time()
-        #     krylov = f.rationalkrylov(A=A, v=v, m=m, poles=poles)
-        #     elapsed = process_time() - start
-        #     err = relative_error(approximation=krylov, exact=exact)
-        #     data['err'].append(err)
-        #     data['time'].append(elapsed)
-        # pbar_method.update()
+        pbar_method.desc = f'Methods: RA-AAAm'
+        pbar_method.refresh()
+        for m in ms_RA:
+            data['f'].append(str(f))
+            data['m'].append(m)
+            data['method'].append('RA-AAAm')
+            r = aaa(Z=Z, F=f.scalar, mmax=(m + 1), tol=-1)
+            poles = r.poles()
+            start = process_time()
+            krylov = f.rationalkrylov(A=A, v=v, m=m, poles=poles)
+            elapsed = process_time() - start
+            err = relative_error(approximation=krylov, exact=exact)
+            data['err'].append(err)
+            data['time'].append(elapsed)
+        pbar_method.update()
 
         pbar_method.close()
         pbar.update()

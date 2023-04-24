@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Union
 
 import numpy as np
 import scipy as sp
@@ -325,7 +326,6 @@ class MatrixFunction(ABC):
 
         return fAv
 
-# TODO: Validate
 class Phi(MatrixFunction):
     """Class for computing $\\varphi_{p}(tA) v$"""
 
@@ -335,13 +335,41 @@ class Phi(MatrixFunction):
         self.p = p
         self.t = t
 
-    def scalar(self, z: complex) -> complex:
+    def scalar(self, z: Union[float, complex, np.ndarray]) -> np.ndarray:
         """Computes the scalar function using the recurrence relation."""
 
+        # Convert to ndarray
+        if not isinstance(z, np.ndarray):
+            z = np.array([z])
+        # Apply the time step
         z = self.t * z
-        res = np.sum([(1 / np.math.factorial(l)) * (z ** l) for l in range(self.p)], axis=0)
 
-        return (np.exp(z) - res) / (z ** self.p)
+        # Set attributes
+        p = self.p
+        tol = 1
+
+        if p:
+            # Compute the output for z's bigger than tolerance (closed form formula)
+            z_ = z.copy()
+            z_[np.where(np.abs(z) < np.finfo(z.dtype).resolution)] = np.nan
+            res = np.sum([(1 / np.math.factorial(k)) * (z_ ** k) for k in range(self.p)], axis=0)
+            out = (np.exp(z_) - res) / (z_ ** self.p)
+
+            # Compute the output for small z's (embedded matrix)
+            z_ = z.copy()
+            z_[np.where(np.abs(z) > tol)] = 0
+            A_h = np.zeros(shape=(*z.shape, p+1, p+1), dtype=z.dtype)
+            A_h[..., 0, 0] = z_
+            A_h[..., 0, 1] = 1
+            A_h[..., 1:1+p-1, 1+1:1+p] = np.identity(p-1, dtype=z.dtype)
+            out_ = la.expm(A_h)[..., 0, -1]
+            out[np.where(np.abs(z) <= tol)] = out_[np.where(np.abs(z) <= tol)]
+
+        else:
+            # Compute the exponential
+            out = np.exp(z)
+
+        return out
 
     def exact_dense(self, A: Matrix, v: np.ndarray) -> np.ndarray:
         """Computes the action of the phi-function on a vector by converting it to a dense matrix."""

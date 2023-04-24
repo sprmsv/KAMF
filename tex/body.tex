@@ -69,9 +69,13 @@ Some properties of the matrix exponential follows:
 \begin{figure}[h]
     \centering
     \includegraphics[width=.7\textwidth]{img/scalarcomplexplane.png}
-    \caption{Evaluation of scalar $\varphi$-functions on the complex plane. The values that are out of the range of the color bar are not visualized.}
+    \caption{
+        Evaluation of scalar $\varphi$-functions on the complex plane.
+        The values that are out of the range of the color bar are not visualized.
+        }
     \label{fig:scalarphifunctionscomplexplane}
 \end{figure}
+\todo[color=pink]{Updated \autoref{fig:scalarphifunctionscomplexplane}: Plots for negative real values.}
 
 
 \subsection{\texorpdfstring{$\varphi$}{Phi}-functions}
@@ -91,11 +95,14 @@ The $\varphi$-functions satisfy~\cite{higham2008functions} the recurrence relati
 \begin{equation}
     \label{eq:scalarphifunctionsrecurrence}
     \varphi_p(z) = z^{-1} \left[ \varphi_{p-1}(z) - \frac{1}{(p-1)!} \right] ,
-    \quad p \in \mathbb{N^*} \:, z \neq 0 .
+    \quad p \in \mathbb{N^*} \:, z \neq 0,
 \end{equation}
+and $\varphi_p(z) = \frac{1}{p!}$ for $z=0$.
 
-The evaluation of the first three scalar $\varphi$-functions on the complex plane
-is illustrated in \autoref{fig:scalarphifunctionscomplexplane}.
+The evaluation of the first three scalar $\varphi$-functions on the left half complex plane
+is illustrated in \autoref{fig:scalarphifunctionscomplexplane}. Note that the gradients are
+smaller for higher $p$'s.
+
 
 We can use \eqref{eq:scalarphifunctionsrecurrence} recursively as
 \begin{equation*}
@@ -111,7 +118,7 @@ We can use \eqref{eq:scalarphifunctionsrecurrence} recursively as
 to derive a closed form for $\varphi_p$:
 \begin{equation}
     \label{eq:scalarphifunctionsclosedform}
-    \varphi_p(z) = z^{-p} \left( \exp(z) - \sum_{k=0}^{p-1}{\frac{1}{k!}z^{k}} \right).
+    \varphi_p(z) = z^{-p} \left( \exp(z) - \sum_{k=0}^{p-1}{\frac{1}{k!}z^{k}} \right), \quad z \neq 0.
 \end{equation}
 
 % CHECK: What if A is singular?
@@ -853,7 +860,7 @@ $A_2$ and $A_3$ have moderate relative gaps on both sides.
 
 \subsubsection*{Pole Selection for Rational Krylov Approximation}
 
-We use the \texttt{baryrat} library introduced in \cite{hofreither2021BRASIL} which implements both
+We use the \texttt{baryrat} library introduced in \cite{hofreither2021BRASIL} which implements
 the AAA algorithm for rational approximations. One downside of using this algorithm
 is the additional computational cost that it brings for computing the poles.
 The AAA algorithm  computes the residual of the approximation on all the given interpolation points at
@@ -874,6 +881,19 @@ With this scheme for the pole selection, the RA method is denoted by RA-AAAk whe
 by its number.
 We also consider the case with a single repeated pole $\xi_1 = \xi_2 = \cdots = \xi_{m} = 1$ and
 we deonte it by RA-ONES.
+
+\todo[color=pink]{Added this remark on calculating the scalar $\varphi$-functions accurately for small $z$.}
+\begin{remark}
+    In order to approximate the scalar function, the AAA algorithm needs to evaluate the scalar
+    $\varphi_p(z)$ many times in the interval. For $|z| > 1$, \eqref{eq:scalarphifunctionsclosedform}
+    is used.
+    However, this equation suffers from numerical stability as $z$ gets small in magnitude. Hence, for
+    non-zero $|z| < 1$, we use Corollary \ref{cor:embeddedmatrixexponential} and read $\varphi_p(z)$
+    from the first entry of the last column of $\exp(\hat{A})$ with $\hat(A)$ being defined in
+    \eqref{eq:embeddedmatrixdefinition} for the matrix-vector pair
+    $(z \in \mathbb{C}^{1 \times 1}, 1 \in \mathbb{C}^{1})$. For $|z|$ smaller than the machine precision,
+    $\varphi_p(0) = \frac{1}{p!}$ is returned.
+\end{remark}
 
 \begin{figure}[h!]
     \centering
@@ -934,8 +954,8 @@ This observation is consistent with the error bound provided in Lemma
 improves the bound. This slight improvement could also be justified by looking at the
 $\varphi$-functions on the complex plane. As depicted in
 \autoref{fig:scalarphifunctionscomplexplane}, when $p$ is increased, the
-function $\varphi_p$ grows more slowly and thus it could be approximated better with a
-polynomial of a fixed degree. Therefore, the polynomial Krylov approximation needs
+function $\varphi_p$ grows more slowly on the real axis and thus it could be approximated
+better with a polynomial of a fixed degree. Therefore, the polynomial Krylov approximation needs
 less iterations to reach a certain tolerance according to Theorem
 \ref{the:univariateerrorestimationgeneral}.
 As $\lambda$ goes to $\infty$, the convergence of the PA method deteriorates significantly.
@@ -961,7 +981,8 @@ of the matrix.
     \caption{
         CPU time for different evaluation methods. For the approximating methods,
         the minimum iterations required to reach a relative error less than $10^{-12}$
-        is considered.
+        is considered. Shadows of each line represent the range of the CPU time for
+        $\varphi_0$, $\varphi_1$, $\varphi_3$, and $\varphi_5$.
     }
     \label{fig:krylovapproximationcputime}
 \end{figure}
