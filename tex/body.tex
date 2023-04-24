@@ -621,7 +621,7 @@ in the subspace. It could be shown (see Corollary 3.4 in \cite{guttel2013rationa
 the rational Krylov approximation satisfies
 \begin{equation*}
     \left\| f(A)v - f_m^{RA}  \right\|_2 \le 2 C \left\| v \right\|_2
-    \min_{r_m \in \mathcal{Q}_{m}} \max_{z \in \Sigma} \left\| f(z) - r_m(z) \right\|_2
+    \min_{r_m \in \mathcal{Q}_{m}} \max_{z \in \Sigma} | f(z) - r_m(z) |
 \end{equation*}
 with a constant $C \le 11.08$, assuming that $f$ is analytic in the neighbourhood of
 a compact set $\Sigma \supseteq \mathcal{W}(A)$, where $\mathcal{W}(A)$ is the numerical range
@@ -782,7 +782,7 @@ grid points, and $K_n$ is a tridiagonal matrix defined as
 We are interested in evaluating $\varphi_p(-tA) v$ with $t \in \mathbb{R}$ being a time step.
 We take $-\hat{A}_{1D} \in \mathbb{R}^{n \times n}$ and $-\hat{A}_{2D} \in \mathbb{R}^{n \times n}$
 ($n$ must have an integer square root), and we spectrally scale them so that they both have the
-same spectral interval $[-\lambda, -\epsilon]$ with $\lambda \gg \epsilon = 1\mathrm{e}{-06} > 0$.
+same spectral interval $[-\lambda, -\epsilon]$ with $\lambda > 0$ and $\epsilon = 0$.
 We call the resulting matrices $A_1$ and $A_2$, respectively.
 The spectral interval of a complex Hermitian or a real symmetric matrix is the smallest
 interval in $\mathbb{R}$ that contains all the eigenvalues of the matrix, and it coincides
@@ -868,12 +868,17 @@ each iteration. Hence, for approximating a rational function of degree $m$, its 
 as $O(mn)$ where $n$ is the number of interpolation points given as input.
 Furthermore, since this algorithm computes the poles based on the interpolation points, the
 selected poles by this algorithm are very sensitive to the discretization of the interpolation domain.
-Considering the $[-\lambda, -\epsilon] \subset \mathbb{R}$ interval, the number of interpolation
+Considering the $[-\lambda, 0] \subset \mathbb{R}$ interval, the number of interpolation
 points for the AAA algorithm to work accurately scales with $\lambda$, which becomes a real burden
-when $\lambda \to \infty$. However, as depicted in \autoref{fig:poles}, numerical results show that
+when $\lambda \to \infty$. However, as depicted in \autoref{fig:polesAAA}, numerical results show that
 for this interval, the computed poles converge quite early when $\lambda$ is increased. We take
-advantage of this behaviour and we always compute the poles by the AAA algorithm with 1000 interpolation
-points spaced linearly on the interval $[-1000, -\epsilon]$.
+advantage of this behaviour and we always compute the poles by running the AAA algorithm
+on the interval $[-1000, 0]$. \autoref{fig:errorsAAA} shows the maximum error of the rational
+approximations of $\varphi$-functions by the AAA algorithm provided with different discretizations
+of the interval $[-1000, 0]$ and $[-\lambda, 0]$. These results show that discretizing the interval
+$[-1000, 0]$ with 2000 points spaced uniformly gives the best performance, even better than discretizing
+the whole interval with $\lambda$ points. Furthermore, we can see that with a fixed degree, the best
+rational approximation of the AAA aglorithm has a lower error for larger $p$'s.
 
 For a rational Krylov subspace of order $m$, first we compute $k \le m$ poles $\eta_1, \dots, \eta_k$
 by the AAA algorithm and we repeat them enough times to fill the $m$ poles $\xi_1, \dots, \xi_m$.
@@ -883,6 +888,7 @@ We also consider the case with a single repeated pole $\xi_1 = \xi_2 = \cdots = 
 we deonte it by RA-ONES.
 
 \todo[color=pink]{Added this remark on calculating the scalar $\varphi$-functions accurately for small $z$.}
+\todo[color=pink]{With this implementation I can consider the interval $[-\lambda, 0]$.}
 \begin{remark}
     In order to approximate the scalar function, the AAA algorithm needs to evaluate the scalar
     $\varphi_p(z)$ many times in the interval. For $|z| > 1$, \eqref{eq:scalarphifunctionsclosedform}
@@ -897,12 +903,30 @@ we deonte it by RA-ONES.
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=.9\textwidth]{img/AAA/poles_linspace_aaa.png}
+    \includegraphics[width=.9\textwidth]{img/AAA/poles_linspace_m10.png}
     \caption{
-        Computed poles by the AAA algorithm for $\varphi_3$ with $\lambda$ uniformly
-        distributed interpolation points on the interval $[-\lambda, -\epsilon]$.
+        The 10 first computed poles by the AAA algorithm for $\varphi$-functions with $\lambda$ uniformly
+        distributed interpolation points on the interval $[-\lambda, 0]$.
     }
-    \label{fig:poles}
+    \label{fig:polesAAA}
+\end{figure}
+
+\todo[color=pink]{
+    Added \autoref{fig:errorsAAA} which shows that the method good enough and better than
+    considering the whole interval.
+}
+\todo[color=pink]{
+    \autoref{fig:errorsAAA} also shows that the errors are smaller for larger $p$'s.
+}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=.9\textwidth]{img/AAA/errors_methods_m10.png}
+    \caption{
+        Maximum error of the degree 10 rational approximation of $\varphi$-functions on the interval
+        $[-\lambda, 0]$.
+    }
+    \label{fig:errorsAAA}
 \end{figure}
 
 
@@ -929,13 +953,13 @@ for different matrices. The relative error is computed as:
 \begin{figure}[h!]
     \centering
     \begin{subfigure}[b]{.9\textwidth}
-        \includegraphics[width=\textwidth]{img/krylovapproximation/cnvg_ps_PA_n10000.png}
+        \includegraphics[width=\textwidth]{img/krylovapproximation/cnvg_ps_PA_n1e04.png}
         \caption{Polynomial Krylov approximation.}
         \label{fig:polynomialkrylovapproximationevaluation}
     \end{subfigure}
     \vfill
     \begin{subfigure}[b]{.9\textwidth}
-        \includegraphics[width=\textwidth]{img/krylovapproximation/cnvg_ps_RA_n10000.png}
+        \includegraphics[width=\textwidth]{img/krylovapproximation/cnvg_ps_RA_n1e04.png}
         \caption{Rational Krylov approximation.}
         \label{fig:rationalkrylovapproximationevaluation}
     \end{subfigure}
@@ -955,9 +979,10 @@ improves the bound. This slight improvement could also be justified by looking a
 $\varphi$-functions on the complex plane. As depicted in
 \autoref{fig:scalarphifunctionscomplexplane}, when $p$ is increased, the
 function $\varphi_p$ grows more slowly on the real axis and thus it could be approximated
-better with a polynomial of a fixed degree. Therefore, the polynomial Krylov approximation needs
-less iterations to reach a certain tolerance according to Theorem
-\ref{the:univariateerrorestimationgeneral}.
+better with a polynomial of a fixed degree.
+Therefore, the polynomial Krylov approximation needs less iterations to reach a certain tolerance according
+to Theorem \ref{the:univariateerrorestimationgeneral}.
+This hypothesis is also supported by \autoref{fig:errorsAAA}.
 As $\lambda$ goes to $\infty$, the convergence of the PA method deteriorates significantly.
 On the other hand, the convergence of the RA method is not affected by the spectrum
 of the matrix.
@@ -1020,7 +1045,7 @@ and more iterations to converge when $\lambda \to \infty$.
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=.9\textwidth]{img/AAA/cnvg_poles_n10000_eigs.png}
+    \includegraphics[width=.9\textwidth]{img/AAA/cnvg_poles_n1e04_eigs.png}
     \caption{
         Convergence of the approximation \eqref{eq:rationalkrylovapproximation} with different
         pole selection strategies for $A_1$, $p=1$, and $n=10^4$.
