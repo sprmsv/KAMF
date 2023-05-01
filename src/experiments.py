@@ -139,7 +139,7 @@ def get_convergence(
         pbar.refresh()
 
         # Create the inside progress bar
-        pbar_method = tqdm(total=8, desc='Methods', leave=False)
+        pbar_method = tqdm(total=7, desc='Methods', leave=False)
 
         # Get the reference evaluation
         pbar_method.desc = f'Methods: EX'

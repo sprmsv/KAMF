@@ -9,41 +9,43 @@
 \subsection{Univariate Matrix Functions}
 This section reviews the basic definition and properties of matrix functions
 discussed in detail in \cite{higham2008functions}.
-Let $A \in \mathbb{C}^{n \times n}$ have $s$ distinct eigenvalues $\{\lambda_i\}_{i=1}^{s}$.
-$A$ can be expressed in the Jordan canonical form as $A = ZJZ^{-1} = Z \diag(J_1, J_2, \dots, J_K)
-Z^{-1}$. Let $ind_{\lambda_i}(A)$ denote the size of the largest Jordan block associated
-with $\lambda_i$. The matrix function associated with a univariate function $f$
+Let $A \in \mathbb{C}^{n \times n}$ have $s$ distinct eigenvalues $\Lambda(A) = \{\lambda_k\}_{k=1}^{s}$.
+$A$ can be expressed in the Jordan canonical form as $A = ZJZ^{-1} = Z \diag(J_k)_{k=1}^{s}
+Z^{-1}$. Let $m_k$ denote the size of the largest Jordan block associated
+with $\lambda_k$. The matrix function associated with a univariate function $f$
 is defined by $f(A) := g(A)$, where $g(z)$ is the unique Hermite interpolating
-polynomial of degree less than $\sum_{i=1}^{s}{ind_{\lambda_i}(A)}$. $g(z)$ which
+polynomial of degree less than $\sum_{k=1}^{s}{m_k}$. $g(z)$ which
 satisfies
 \begin{equation}
-    \frac{\partial^j}{\partial z^j}g(\lambda_i) = \frac{\partial^j}{\partial z^j}f(\lambda_i),
-    \quad \forall j \in \{0, 1, \dots, ind_{\lambda_i(A)}-1\},
-    \quad \forall i \in \{1, 2, \dots, s\},
+    \frac{\partial^j}{\partial z^j}g(\lambda_k) = \frac{\partial^j}{\partial z^j}f(\lambda_i),
+    \quad \forall j \in \{0, 1, \dots, m_k-1\},
+    \quad \forall k \in \{1, 2, \dots, s\},
 \end{equation}
 assuming that all required derivatives of $f(z)$ exist.
-\todo[color=cyan]{Add the Jordan canonical form definition from \cite{higham2008functions}.}
-\todo[color=cyan]{Add the Cauchy integral definition.}
 
-It can be shown that if $A = \diag(\lambda_i)_{i=1}^{n}$ is diagonal, we have
+Equivalently, $f(A)$ could also be defined as $f(A) := Z \diag(f(J_k))_{k=1}^{s}$ where
+\begin{equation*}
+    f(J_k) =
+    \begin{bmatrix}
+    f(\lambda_k) & f'(\lambda_k)  & \frac{1}{2} f^{(2)}(\lambda_k) & \cdots & \frac{f^{(m_k-1)}(\lambda_k)}{(m_k - 1)!}\\
+    & f(\lambda_k) & f'(\lambda_k) & \cdots & \frac{f^{(m_k-2)}(\lambda_k)}{(m_k - 2)!} \\
+    &  & f(\lambda_k) & \ddots & \vdots \\
+    &  &  & \ddots & f'(\lambda_k)\\
+    &  &  &  & f(\lambda_k)
+    \end{bmatrix}.
+\end{equation*}
+
+If $A = Z \diag(\lambda_k)_{k=1}^{n} Z^{-1}$ is diagonalizable, we have
 \begin{equation}
     \label{eq:matrixfunctiondiagonal}
-    f(A) = \diag(f(\lambda_i))_{i=1}^{n}.
-\end{equation}
-This is simply because $A^k = \diag(\lambda_i^k)_{i=0}^{n}$ for any $k$.
-
-For any invertible matrix $P \in \mathbb{C}^{n \times n}$, we have
-\begin{equation}
-    \label{eq:matrixfunctioninvertible}
-    f(A) = g(A) = Pg(P^{-1}AP)P^{-1} = Pf(P^{-1}AP)P^{-1}
+    f(A) = Z \diag(f(\lambda_k))_{k=1}^{n} Z^{-1}.
 \end{equation}
 
-If $A$ is diagonalizable, say $P^{-1}AP = \diag(\lambda_i)_{i=1}^{n} =: \Lambda$,
-using \eqref{eq:matrixfunctioninvertible} and \eqref{eq:matrixfunctiondiagonal}
-we can write
+A third equivalent definition is via Cauchy integral and it reads
 \begin{equation}
-    f(A) = P f(\Lambda) P^{-1} = P \diag(f(\lambda_i))_{i=1}^{n} P^{-1}.
+    f(A) := \frac{1}{2 \pi i} \int_{\Gamma}{f(z)(zI - A)^{-1} dz},
 \end{equation}
+assuming that $f$ is analytic on and inside a closed contour $\Gamma$ that encloses $\Lambda(A)$.
 
 \subsection{Matrix Exponential}
 The matrix function attributed to the scalar exponential function is called
@@ -623,9 +625,9 @@ the rational Krylov approximation satisfies
     \left\| f(A)v - f_m^{RA}  \right\|_2 \le 2 C \left\| v \right\|_2
     \min_{r_m \in \mathcal{Q}_{m}} \max_{z \in \Sigma} | f(z) - r_m(z) |
 \end{equation*}
-with a constant $C \le 11.08$, assuming that $f$ is analytic in the neighbourhood of
-a compact set $\Sigma \supseteq \mathcal{W}(A)$, where $\mathcal{W}(A)$ is the numerical range
-of the matrix $A$ and is defined as
+with a constant $C \le 11.08$ ($C = 1$ for Hermitian $A$), assuming that $f$ is analytic in
+the neighbourhood of a compact set $\Sigma \supseteq \mathcal{W}(A)$, where $\mathcal{W}(A)$
+is the numerical range of the matrix $A$ and is defined as
 \begin{equation}
     \label{eq:numericalrange}
     \mathcal{W}(A) = \{x^* A x \:|\: x \in \mathbb{C}^{n}, \|x\|_2=1\}.
@@ -665,12 +667,6 @@ In this subsection, we describe the methods that are used for computing the refe
 evaluations of the action of different matrix functions on vectors for large sparse matrices.
 We use these evaluations to calculate the error of the approximation methods.
 
-\todo[color=cyan]{Add the recursive algorithm}
-\begin{comment}
-    \begin{equation}
-        \varphi_p(A) v = A^{-1} \varphi_p(A) v - A^{-1} v / {(p-1)!}
-    \end{equation}
-\end{comment}
 Consider a large sparse matrix $A \in \mathbb{C}^{n \times n}$ and a vector $v \in \mathbb{C}^n$.
 In order to compute the action of $\varphi_p(A)$ on $v$, we use Corollary
 \ref{cor:embeddedmatrixexponential} for the matrix-vector pair $(A, v)$ and
@@ -873,7 +869,7 @@ points for the AAA algorithm to work accurately scales with $\lambda$, which bec
 when $\lambda \to \infty$. However, as depicted in \autoref{fig:polesAAA}, numerical results show that
 for this interval, the computed poles converge quite early when $\lambda$ is increased. We take
 advantage of this behaviour and we always compute the poles by running the AAA algorithm
-on the interval $[-1000, 0]$. \autoref{fig:errorsAAA} shows the maximum error of the rational
+on the interval $[-1000, 0]$. \autoref{fig:errorsAAAmethods} shows the maximum error of the rational
 approximations of $\varphi$-functions by the AAA algorithm provided with different discretizations
 of the interval $[-1000, 0]$ and $[-\lambda, 0]$. These results show that discretizing the interval
 $[-1000, 0]$ with 2000 points spaced uniformly gives the best performance, even better than discretizing
@@ -886,6 +882,12 @@ With this scheme for the pole selection, the RA method is denoted by RA-AAAk whe
 by its number.
 We also consider the case with a single repeated pole $\xi_1 = \xi_2 = \cdots = \xi_{m} = 1$ and
 we deonte it by RA-ONES.
+
+\todo[color=gray]{
+    Two other strategies have been considered but this one performs the best.
+    1: Keeping the first m poles and repeating $\infty$ afterwards;
+    2: Keeping the first m poles and repeating the last one afterwards.
+}
 
 \todo[color=pink]{Added this remark on calculating the scalar $\varphi$-functions accurately for small $z$.}
 \todo[color=pink]{With this implementation I can consider the interval $[-\lambda, 0]$.}
@@ -912,11 +914,11 @@ we deonte it by RA-ONES.
 \end{figure}
 
 \todo[color=pink]{
-    Added \autoref{fig:errorsAAA} which shows that the method good enough and better than
+    Added \autoref{fig:errorsAAAmethods} which shows that the method is accurate enough and better than
     considering the whole interval.
 }
 \todo[color=pink]{
-    \autoref{fig:errorsAAA} also shows that the errors are smaller for larger $p$'s.
+    \autoref{fig:errorsAAAmethods} also shows that the errors are smaller for larger $p$'s.
 }
 
 \begin{figure}[h!]
@@ -926,7 +928,23 @@ we deonte it by RA-ONES.
         Maximum error of the degree 10 rational approximation of $\varphi$-functions on the interval
         $[-\lambda, 0]$.
     }
-    \label{fig:errorsAAA}
+    \label{fig:errorsAAAmethods}
+\end{figure}
+
+\todo[color=pink]{
+    Added \autoref{fig:errorsAAAms} which shows that the accuracy of the approximations reach
+    machine precision with degree 20.
+}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=.9\textwidth]{img/AAA/errors_ms.png}
+    \caption{
+        Maximum error of the rational approximation of $\varphi$-functions on the interval
+        $[-\lambda, 0]$. The approximations are made on the interal $[-1000, 0]$ with 2000
+        equally spaced nodes.
+    }
+    \label{fig:errorsAAAms}
 \end{figure}
 
 
@@ -982,7 +1000,7 @@ function $\varphi_p$ grows more slowly on the real axis and thus it could be app
 better with a polynomial of a fixed degree.
 Therefore, the polynomial Krylov approximation needs less iterations to reach a certain tolerance according
 to Theorem \ref{the:univariateerrorestimationgeneral}.
-This hypothesis is also supported by \autoref{fig:errorsAAA}.
+This hypothesis is also supported by \autoref{fig:errorsAAAmethods}.
 As $\lambda$ goes to $\infty$, the convergence of the PA method deteriorates significantly.
 On the other hand, the convergence of the RA method is not affected by the spectrum
 of the matrix.
@@ -1034,14 +1052,18 @@ starts being less efficient than the reference solution when the smallest eigenv
 to $-\infty$. The reason for this is that as mentioned before, the PA method needs more
 and more iterations to converge when $\lambda \to \infty$.
 
-\todo{Comment on \autoref{fig:rationalkrylovpoleselection}.}
-\begin{comment}
-    - RA-AAA10 works the best among these
-    - RA-AAA10 has a pattern after each 10 m's
-    - The same pattern seems to exist for AAA5 and AAA3
-    - RA-AAAm fails after around m=20, possibly because of the AAA algorithm
-    - It gets better for larger lambda??
-\end{comment}
+\autoref{fig:rationalkrylovpoleselection} compares the convergence of the RA method with different
+pole selection strategies. Repeating the first pole computed by the AAA algorithm already shows
+advantages over repeating $\xi = 1$. As we increase the degree of the rational approximation by
+the AAA algorithm, the convergence rates gets higher but only until a certain degree.
+The RA-AAA10 works the best among the presented pole selection strategies. It is noteworthy that
+the rate of convergence with this method is higher when all the 10 poles are repeated equal times.
+With the RA-AAAm strategy (approximating with rational function of degree $m+1$), the relative
+error stagnates at around $10^{-8}$ and even before this error, the rate of convergence is close
+to with only one repeated pole. This behaviour could be justified when we note that the poles
+are obtained by approximating the function on an interval different than $[-\lambda, 0]$.
+Increasing the degree of the rational approximant, thus, could worsen the approximation when the
+whole interval is considered.
 
 \begin{figure}[h]
     \centering
@@ -1089,3 +1111,9 @@ and more iterations to converge when $\lambda \to \infty$.
         }
         \label{fig:trigonometricconvergencemethods}
 \end{figure}
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+% Cite Trefethen (Approximation Theory, p278):
+% Polynomials cannot do the job at all!!

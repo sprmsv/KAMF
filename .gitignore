@@ -133,3 +133,4 @@ refs/
 data/
 .DS_Store
 tex/.out/
+experiments_tmp.csv
