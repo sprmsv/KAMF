@@ -7,6 +7,7 @@
 \section{Matrix Functions}
 
 \subsection{Univariate Matrix Functions}
+\todo[color=pink]{Added the 3 definitions of matrix functions.}
 This section reviews the basic definition and properties of matrix functions
 discussed in detail in \cite{higham2008functions}.
 Let $A \in \mathbb{C}^{n \times n}$ have $s$ distinct eigenvalues $\Lambda(A) = \{\lambda_k\}_{k=1}^{s}$.
@@ -14,8 +15,7 @@ $A$ can be expressed in the Jordan canonical form as $A = ZJZ^{-1} = Z \diag(J_k
 Z^{-1}$. Let $m_k$ denote the size of the largest Jordan block associated
 with $\lambda_k$. The matrix function associated with a univariate function $f$
 is defined by $f(A) := g(A)$, where $g(z)$ is the unique Hermite interpolating
-polynomial of degree less than $\sum_{k=1}^{s}{m_k}$. $g(z)$ which
-satisfies
+polynomial of degree less than $\sum_{k=1}^{s}{m_k}$, which satisfies
 \begin{equation}
     \frac{\partial^j}{\partial z^j}g(\lambda_k) = \frac{\partial^j}{\partial z^j}f(\lambda_i),
     \quad \forall j \in \{0, 1, \dots, m_k-1\},
@@ -23,7 +23,7 @@ satisfies
 \end{equation}
 assuming that all required derivatives of $f(z)$ exist.
 
-Equivalently, $f(A)$ could also be defined as $f(A) := Z \diag(f(J_k))_{k=1}^{s}$ where
+Equivalently, $f(A)$ could also be defined as $f(A) := Z \diag(f(J_k))_{k=1}^{s} Z^{-1}$ where
 \begin{equation*}
     f(J_k) =
     \begin{bmatrix}
@@ -77,7 +77,10 @@ Some properties of the matrix exponential follows:
         }
     \label{fig:scalarphifunctionscomplexplane}
 \end{figure}
-\todo[color=pink]{Updated \autoref{fig:scalarphifunctionscomplexplane}: Plots for negative real values.}
+\todo[color=pink]{
+    Updated \autoref{fig:scalarphifunctionscomplexplane}: Plots for negative real values.
+    The gradients are smaller for higher p's.
+}
 
 
 \subsection{\texorpdfstring{$\varphi$}{Phi}-functions}
@@ -97,7 +100,7 @@ The $\varphi$-functions satisfy~\cite{higham2008functions} the recurrence relati
 \begin{equation}
     \label{eq:scalarphifunctionsrecurrence}
     \varphi_p(z) = z^{-1} \left[ \varphi_{p-1}(z) - \frac{1}{(p-1)!} \right] ,
-    \quad p \in \mathbb{N^*} \:, z \neq 0,
+    \quad z \neq 0, \quad p \in \mathbb{N^*},
 \end{equation}
 and $\varphi_p(z) = \frac{1}{p!}$ for $z=0$.
 
@@ -897,9 +900,9 @@ we deonte it by RA-ONES.
     is used.
     However, this equation suffers from numerical stability as $z$ gets small in magnitude. Hence, for
     non-zero $|z| < 1$, we use Corollary \ref{cor:embeddedmatrixexponential} and read $\varphi_p(z)$
-    from the first entry of the last column of $\exp(\hat{A})$ with $\hat(A)$ being defined in
+    from the first entry of the last column of $\exp(\hat{A})$ with $\hat{A}$ being defined in
     \eqref{eq:embeddedmatrixdefinition} for the matrix-vector pair
-    $(z \in \mathbb{C}^{1 \times 1}, 1 \in \mathbb{C}^{1})$. For $|z|$ smaller than the machine precision,
+    $(z \in \mathbb{C}^{1 \times 1}, 1 \in \mathbb{C}^{1})$. For $|z|$ smaller than machine precision,
     $\varphi_p(0) = \frac{1}{p!}$ is returned.
 \end{remark}
 
@@ -1055,7 +1058,7 @@ and more iterations to converge when $\lambda \to \infty$.
 \autoref{fig:rationalkrylovpoleselection} compares the convergence of the RA method with different
 pole selection strategies. Repeating the first pole computed by the AAA algorithm already shows
 advantages over repeating $\xi = 1$. As we increase the degree of the rational approximation by
-the AAA algorithm, the convergence rates gets higher but only until a certain degree.
+the AAA algorithm, the convergence rates get higher but only until a certain degree.
 The RA-AAA10 works the best among the presented pole selection strategies. It is noteworthy that
 the rate of convergence with this method is higher when all the 10 poles are repeated equal times.
 With the RA-AAAm strategy (approximating with rational function of degree $m+1$), the relative
@@ -1074,6 +1077,11 @@ whole interval is considered.
     }
     \label{fig:rationalkrylovpoleselection}
 \end{figure}
+
+\todo[color=pink]{The behaviour of RA-AAAm could be justified when we note that the poles
+are obtained by approximating the function on an interval different than $[-\lambda, 0]$.
+Increasing the degree of the rational approximant, thus, could worsen the approximation when the
+whole interval is considered.}
 
 \FloatBarrier
 \subsection{Trigonometric Matrix Functions}
