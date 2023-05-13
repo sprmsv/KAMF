@@ -896,14 +896,17 @@ we deonte it by RA-ONES.
 \todo[color=pink]{With this implementation I can consider the interval $[-\lambda, 0]$.}
 \begin{remark}
     In order to approximate the scalar function, the AAA algorithm needs to evaluate the scalar
-    $\varphi_p(z)$ many times in the interval. For $|z| > 1$, \eqref{eq:scalarphifunctionsclosedform}
-    is used.
-    However, this equation suffers from numerical stability as $z$ gets small in magnitude. Hence, for
-    non-zero $|z| < 1$, we use Corollary \ref{cor:embeddedmatrixexponential} and read $\varphi_p(z)$
+    $\varphi_p(z)$ many times in the interval.
+    For $\varphi_0$ the scalar exponential is used. For $\varphi_1$, the \texttt{scipy.special.expm1}
+    function divided by $z$ gives accurate evaluations for large and small $z$.
+    For $\varphi_p$, $p > 1$, two methods are used depending on the absolute value of $z$.
+    For $|z| > 1$, \eqref{eq:scalarphifunctionsrecurrence} is used in a recursive algorithm.
+    However, for small $|z|$, this method lacks numerical stability because of multiple divisions by $z$.
+    Hence, for non-zero $|z| < 1$, we use Corollary \ref{cor:embeddedmatrixexponential} and read $\varphi_p(z)$
     from the first entry of the last column of $\exp(\hat{A})$ with $\hat{A}$ being defined in
     \eqref{eq:embeddedmatrixdefinition} for the matrix-vector pair
-    $(z \in \mathbb{C}^{1 \times 1}, 1 \in \mathbb{C}^{1})$. For $|z|$ smaller than machine precision,
-    $\varphi_p(0) = \frac{1}{p!}$ is returned.
+    $(z \in \mathbb{C}^{1 \times 1}, 1 \in \mathbb{C}^{1})$.
+    For $|z|$ smaller than machine precision, $\varphi_p(0) = \frac{1}{p!}$ is returned.
 \end{remark}
 
 \begin{figure}[h!]

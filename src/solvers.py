@@ -220,16 +220,19 @@ class Phi(MatrixFunction):
             out_ = la.expm(A_h)[..., 0, -1]
             out[np.where(np.abs(z) <= tol)] = out_[np.where(np.abs(z) <= tol)]
 
-            # Compute the output for z smaller than dtype resolution (limit value)
-            out[np.where(np.abs(z) < np.finfo(z.dtype).resolution)] = 1 / np.math.factorial(p)
-
         elif p == 1:
             # Compute phi using expm1
-            out = sp.special.expm1(z) / z
+            z_ = z.copy()
+            z_[np.where(np.abs(z) < np.finfo(z.dtype).resolution)] = np.nan
+            out = sp.special.expm1(z_) / z_
 
         else:
             # Compute the exponential
             out = np.exp(z)
+
+        # Compute the output for z smaller than dtype resolution (limit value)
+        out[np.where(np.abs(z) < np.finfo(z.dtype).resolution)] = 1 / np.math.factorial(p)
+
 
         return out
 
