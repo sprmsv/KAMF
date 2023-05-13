@@ -57,6 +57,7 @@ def rationalarnoldi(A: Matrix, v: np.ndarray, m: int, poles: np.ndarray, ro: boo
 
     # Check dimensions
     n = len(v)
+    k = len(poles)
     dtype = A.dtype if not np.iscomplexobj(poles) else poles.dtype
     assert A.shape == (n, n)
     assert m <= n
@@ -65,14 +66,13 @@ def rationalarnoldi(A: Matrix, v: np.ndarray, m: int, poles: np.ndarray, ro: boo
     H_m = np.zeros(shape=(m, m), dtype=dtype)
     V_m = np.zeros(shape=(n, m), dtype=dtype)
     I = sps.identity(n, dtype=dtype, format=(A.format if sps.issparse(A) else None))
-    solve = spla.spsolve if sps.issparse(A) else la.solve
+
+    # Get the pre-factorized solvers
+    solvers = [FactorizedSolver(A=(I - A / pole)) for pole in poles]
 
     V_m[:, 0] = v / np.linalg.norm(v)
     for j in range(0, m):
-        w = solve(
-            (I - A / poles[j]),
-            (A @ V_m[:, j]),
-        )
+        w = solvers[j % k](b=(A @ V_m[:, j]))
         H_m[:(j+1), j] = V_m[:, :(j+1)].conjugate().T @ w
         u_hat = w - V_m[:, :(j+1)] @ H_m[:(j+1), j]
 
@@ -94,162 +94,25 @@ def rationalarnoldi(A: Matrix, v: np.ndarray, m: int, poles: np.ndarray, ro: boo
 
     return V_m, H_m, vmp1, hmp1
 
-# TODO: Remove
-class Phi_old:
-    def __init__(self, p: int):
-        assert isinstance(p, int)
-        self.p = p
+class FactorizedSolver:
+    """Class for solving Ax=b with pre-factorized A=LU."""
 
-    def scalar(self, z: complex) -> complex:
-        """Computes the scalar function using the recurrence relation."""
+    def __init__(self, A: Matrix) -> None:
+        self.issparse = sps.issparse(A)
 
-        res = np.sum([(1 / np.math.factorial(l)) * (z ** l) for l in range(self.p)], axis=0)
-        phi_z = (np.exp(z) - res) / (z ** self.p)
-
-        return phi_z
-
-    def exact(self, A: SparseMatrix, v: np.ndarray) -> np.ndarray:
-        """Computes the exact action of the phi-function on a vector by building the corresponding embedded matrix."""
-
-        # Check dimensions
-        n = len(v)
-        dtype = A.dtype
-        assert A.shape == (n, n), f'{A.shape} != {(n, n)}'
-
-        # Get p
-        p = self.p
-
-        # Construct the embedded matrix
-        if p == 0:
-            return spla.expm_multiply(A, v)
+        if self.issparse:
+            self.lu, self.piv = None, None
+            self.solver = spla.factorized(A)
         else:
-            A_h = sps.lil_matrix(np.zeros(shape=(n+p, n+p), dtype=dtype))
-            A_h[:n, :n] = A
-            A_h[:n, n] = v
-            A_h[n:n+p-1, n+1:n+p] = sps.identity(p-1, dtype=dtype, format=A_h.format)
-            if A.format == 'csc':
-                A_h = A_h.tocsc()
-            elif A.format == 'csr':
-                A_h = A_h.tocsr()
+            self.lu, self.piv = la.lu_factor(A)
+            self.solver = self.solve
 
-            # Compute the last column of the exponential of the embedded matrix
-            enpp = np.zeros(shape=(n+p,), dtype=dtype)
-            enpp[-1] = 1
-            return spla.expm_multiply(A_h, enpp)[:n]
+    def solve(self, b: np.ndarray) -> np.ndarray:
+        assert not self.issparse
+        return la.lu_solve((self.lu, self.piv), b)
 
-    # NOTE: Loses accuracy as p grows
-    def recursive(self, A: SparseMatrix, v: np.ndarray) -> np.ndarray:
-        """Computes the action of the phi-function on a vector using the recurrence relation."""
-
-        # Check the type of A
-        if not sps.issparse(A):
-            raise Exception(f'The matrix A of shape {A.shape} must be sparse.')
-
-        return self._recursive(A=A, v=v, p=self.p)
-
-    @staticmethod
-    def _recursive(A: SparseMatrix, v: np.ndarray, p: int) -> np.ndarray:
-        """Computes the action of the matrix function on a vector using the recurrence relation."""
-
-        if p == 0:
-            return spla.expm_multiply(A, v)
-        else:
-            # TODO: You can pre-compute an LU or Cholesky decomposition of A and improve this function
-            # NOTE: x = inv(A) b = inv(U) inv(L) x (call spsolve twice)
-            t1 = spla.spsolve(A=A, b=Phi._recursive(A=A, v=v, p=p-1))
-            t2 = spla.spsolve(A=A, b=v) / np.math.factorial(p-1)
-            return t1 - t2
-
-    def standardkrylov(self, A: SparseMatrix, v: np.ndarray, m: int, ro: bool = True) -> np.ndarray:
-        """Computes the action of the phi-function on a vector using the polynomial Krylov approximation."""
-
-        # Check types
-        assert isinstance(m, int)
-
-        # Check dimensions
-        n = len(v)
-        dtype = A.dtype
-        assert A.shape == (n, n), f'{A.shape} != {(n, n)}'
-        assert m <= n, f'{m} > {n}'
-        assert m > 0, f'{m} <= 0'
-
-        # Arnoldi method
-        V_m, H_m = standardarnoldi(A=A, v=v, m=m, ro=ro)
-
-        # Fetch p
-        p = self.p
-
-        if p == 0:
-            # Define e1
-            e1 = np.zeros(shape=(m,), dtype=dtype)
-            e1[0] = 1
-            # Calculate {\phi}_0(H_m)
-            phi_H = la.expm(H_m)
-            # Calculate {\phi}_0(H_m) e1
-            phi_H_e1 = phi_H @ e1
-
-        else:
-            # Construct the H_{hat} matrix
-            H_h = np.zeros(shape=(m+p, m+p), dtype=dtype)
-            H_h[:m, :m] = H_m
-            H_h[0, m] = 1
-            H_h[m:m+p-1, m+1:m+p] = np.eye(p-1, dtype=dtype)
-            # Calculate {\phi}_p(H_m) e_1
-            phi_H_e1 = la.expm(H_h)[:m, -1]
-
-        # Calculate the approximation of {\phi}_p(A) v
-        phi_A_v = la.norm(v) * V_m @ phi_H_e1
-
-        return phi_A_v
-
-    def rationalkrylov(self, A: SparseMatrix, v: np.ndarray, m: int, poles: np.ndarray, ro: bool = True) -> np.ndarray:
-        """Computes the action of the phi-function on a vector using the rational Krylov approximation."""
-
-        # Check types
-        assert isinstance(m, int)
-
-        # Check dimensions
-        n = len(v)
-        dtype = A.dtype if not np.iscomplexobj(poles) else poles.dtype
-        assert A.shape == (n, n), f'{A.shape} != {(n, n)}'
-        assert m <= n, f'{m} > {n}'
-        assert m > 0, f'{m} <= 0'
-        assert poles.shape == (m,)
-
-        # Rational Arnoldi method
-        V_m, H_m, _, _ = rationalarnoldi(A=A, v=v, m=m, poles=poles, ro=ro)
-        if poles[-1] == np.inf:
-            D_m = np.diag(1 / poles)
-            K_m = np.identity(m) + H_m @ D_m
-            A_m = multiply_by_inverse(A=K_m, B=H_m, mode='right')
-        else:
-            A_m = V_m.conjugate().T @ A @ V_m
-
-        # Fetch p
-        p = self.p
-
-        if p == 0:
-            # Define e1
-            e1 = np.zeros(shape=(m,), dtype=dtype)
-            e1[0] = 1
-            # Calculate {\phi}_0(A_m)
-            phi_A = la.expm(A_m)
-            # Calculate {\phi}_0(A_m) e1
-            phi_A_e1 = phi_A @ e1
-
-        else:
-            # Construct the A_{hat} matrix
-            A_h = np.zeros(shape=(m+p, m+p), dtype=dtype)
-            A_h[:m, :m] = A_m
-            A_h[0, m] = 1
-            A_h[m:m+p-1, m+1:m+p] = np.eye(p-1, dtype=dtype)
-            # Calculate {\phi}_p(H_m) e_1
-            phi_A_e1 = la.expm(A_h)[:m, -1]
-
-        # Calculate the approximation of {\phi}_p(A) v
-        phi_A_v = la.norm(v) * V_m @ phi_A_e1
-
-        return phi_A_v
+    def __call__(self, b: np.ndarray) -> np.ndarray:
+        return self.solver(b)
 
 class MatrixFunction(ABC):
     """Class for computing the action of a matrix function on a vector."""
@@ -296,7 +159,7 @@ class MatrixFunction(ABC):
         return fAv
 
     def rationalkrylov(self, A: Matrix, v: np.ndarray, m: int, poles: np.ndarray, ro: bool = True) -> np.ndarray:
-        """Computes the action of the matrix function on a vector using the rational Krylov approximation."""
+        """Computes the action of the matrix function on a vector using the rational Krylov approximation with k repeated poles."""
 
         # Check types
         assert isinstance(m, int)
@@ -307,17 +170,10 @@ class MatrixFunction(ABC):
         assert A.shape == (n, n), f'{A.shape} != {(n, n)}'
         assert m <= n, f'{m} > {n}'
         assert m > 0, f'{m} <= 0'
-        assert poles.shape == (m,)
 
         # Rational Arnoldi method
-        V_m, H_m, _, _ = rationalarnoldi(A=A, v=v, m=m, poles=poles, ro=ro)
-        if poles[-1] == np.inf:
-            D_m = np.diag(1 / poles)
-            K_m = np.identity(m) + H_m @ D_m
-            A_m = multiply_by_inverse(A=K_m, B=H_m, mode='right')
-        else:
-            A_m = V_m.conjugate().T @ A @ V_m
-
+        V_m, _, _, _ = rationalarnoldi(A=A, v=v, m=m, poles=poles, ro=ro)
+        A_m = V_m.conjugate().T @ A @ V_m
 
         # Calculate the approximation of f(A) v
         e1 = np.zeros(shape=(m,), dtype=dtype)
