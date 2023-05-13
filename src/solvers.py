@@ -204,12 +204,11 @@ class Phi(MatrixFunction):
         p = self.p
         tol = 1
 
-        if p:
-            # Compute the output for z's bigger than tolerance (closed form formula)
+        if p > 1:
+            # Compute the output for z's bigger than tolerance (recursive formula)
             z_ = z.copy()
             z_[np.where(np.abs(z) < np.finfo(z.dtype).resolution)] = np.nan
-            res = np.sum([(1 / np.math.factorial(k)) * (z_ ** k) for k in range(self.p)], axis=0)
-            out = (np.exp(z_) - res) / (z_ ** self.p)
+            out = self._recursive(z=z_, p=self.p)
 
             # Compute the output for small z's (embedded matrix)
             z_ = z.copy()
@@ -221,11 +220,28 @@ class Phi(MatrixFunction):
             out_ = la.expm(A_h)[..., 0, -1]
             out[np.where(np.abs(z) <= tol)] = out_[np.where(np.abs(z) <= tol)]
 
+            # Compute the output for z smaller than dtype resolution (limit value)
+            out[np.where(np.abs(z) < np.finfo(z.dtype).resolution)] = 1 / np.math.factorial(p)
+
+        elif p == 1:
+            # Compute phi using expm1
+            out = sp.special.expm1(z) / z
+
         else:
             # Compute the exponential
             out = np.exp(z)
 
         return out
+
+    def _recursive(self, z: Union[float, complex, np.ndarray], p: int) -> np.ndarray:
+        """Computes the scalar phi-function recursively for a given p."""
+
+        if p == 0:
+            return np.exp(z)
+        elif p == 1:
+            return sp.special.expm1(z) / z
+        else:
+            return (self._recursive(z, p=p-1) - np.exp(-sp.special.gammaln(p)))/ z
 
     def exact_dense(self, A: Matrix, v: np.ndarray) -> np.ndarray:
         """Computes the action of the phi-function on a vector by converting it to a dense matrix."""
@@ -281,28 +297,6 @@ class Phi(MatrixFunction):
             enpp = np.zeros(shape=(n+p,), dtype=dtype)
             enpp[-1] = 1
             return spla.expm_multiply(A_h, enpp)[:n]
-
-    # NOTE: Loses accuracy as p grows
-    def recursive(self, A: SparseMatrix, v: np.ndarray) -> np.ndarray:
-        """Computes the action of the phi-function on a vector using the recurrence relation."""
-
-        # Check the type of A
-        if not sps.issparse(A):
-            raise Exception(f'The matrix A of shape {A.shape} must be sparse.')
-
-        return self._recursive(A=A, v=v, p=self.p)
-
-    def _recursive(self, A: SparseMatrix, v: np.ndarray, p: int) -> np.ndarray:
-        """Computes the action of the matrix function on a vector using the recurrence relation."""
-
-        if p == 0:
-            return spla.expm_multiply(self.t * A, v)
-        else:
-            # TODO: You can pre-compute an LU or Cholesky decomposition of A and improve this function
-            # NOTE: x = inv(A) b = inv(U) inv(L) x (call spsolve twice)
-            t1 = spla.spsolve(A=(self.t * A), b=Phi._recursive(A=A, v=v, p=p-1))
-            t2 = spla.spsolve(A=(self.t * A), b=v) / np.math.factorial(p-1)
-            return t1 - t2
 
     def __str__(self) -> str:
         return f'$\\varphi_{self.p}(tA)$'
