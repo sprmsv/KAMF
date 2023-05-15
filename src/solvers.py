@@ -330,7 +330,7 @@ class Cosine(MatrixFunction):
 
         return la.cosm(self.t * A) @ v
 
-    def exact(self, A: SparseMatrix, v: np.ndarray) -> np.ndarray:
+    def exact_(self, A: SparseMatrix, v: np.ndarray) -> np.ndarray:
         """Computes the action of the matrix function on a vector by building the corresponding embedded matrix."""
 
         # Check dimensions
@@ -355,6 +355,18 @@ class Cosine(MatrixFunction):
             return (v + .5 * (spla.expm_multiply(1j * A_h, enpp)[:n] + spla.expm_multiply(-1j * A_h, enpp)[:n]))
         else:
             return (v + spla.expm_multiply(1j * A_h, enpp)[:n].real)
+
+    def exact(self, A, v: np.ndarray) -> np.ndarray:
+        """Computes the action of the matrix function on a vector."""
+
+        # Check dimensions
+        n = len(v)
+        assert A.shape == (n, n), f'{A.shape} != {(n, n)}'
+
+        if A.dtype != 'complex' and v.dtype != 'complex':
+            return spla.expm_multiply(1j * self.t * A, v).real
+        else:
+            return (spla.expm_multiply(1j * self.t * A, v) + spla.expm_multiply(-1j * self.t * A, v)) / (2)
 
     def __str__(self) -> str:
         return '$\\cos(tA)$'
@@ -388,7 +400,7 @@ class CosineSqrt(MatrixFunction):
 
         return la.cosm(self.t * H) @ v
 
-    def exact(self, A: SparseMatrix, v: np.ndarray) -> np.ndarray:
+    def exact_(self, A: SparseMatrix, v: np.ndarray) -> np.ndarray:
         """Computes the action of the matrix function on a vector by building the corresponding embedded matrix."""
 
         # Check dimensions
@@ -420,6 +432,24 @@ class CosineSqrt(MatrixFunction):
         else:
             return (v + spla.expm_multiply(1j * A_h, enpp)[:n].real)
 
+    def exact(self, A, v: np.ndarray) -> np.ndarray:
+        """Computes the action of the matrix function on a vector."""
+
+        # Check dimensions
+        n = len(v)
+        assert A.shape == (n, n), f'{A.shape} != {(n, n)}'
+
+        # Calculate the square root
+        if sps.issparse(A):
+            H = la.sqrtm(A.toarray())
+        else:
+            H = la.sqrtm(A)
+
+        if H.dtype != 'complex' and v.dtype != 'complex':
+            return spla.expm_multiply(1j * self.t * H, v).real
+        else:
+            return (spla.expm_multiply(1j * self.t * H, v) + spla.expm_multiply(-1j * self.t * H, v)) / (2)
+
     def __str__(self) -> str:
         return '$\\cos(t \sqrt{A})$'
 
@@ -449,7 +479,7 @@ class Sine(MatrixFunction):
 
         return la.sinm(self.t * A) @ v
 
-    def exact(self, A: SparseMatrix, v: np.ndarray) -> np.ndarray:
+    def exact_(self, A: SparseMatrix, v: np.ndarray) -> np.ndarray:
         """Computes the action of the matrix function on a vector by building the corresponding embedded matrix."""
 
         # Check dimensions
@@ -475,6 +505,18 @@ class Sine(MatrixFunction):
             return (1 / (2j)) * (spla.expm_multiply(1j * A_h, enpp)[:n] - spla.expm_multiply(-1j * A_h, enpp)[:n])
         else:
             return (spla.expm_multiply(1j * A_h, enpp)[:n].imag)
+
+    def exact(self, A, v: np.ndarray) -> np.ndarray:
+        """Computes the action of the matrix function on a vector."""
+
+        # Check dimensions
+        n = len(v)
+        assert A.shape == (n, n), f'{A.shape} != {(n, n)}'
+
+        if A.dtype != 'complex' and v.dtype != 'complex':
+            return spla.expm_multiply(1j * self.t * A, v).imag
+        else:
+            return (spla.expm_multiply(1j * self.t * A, v) - spla.expm_multiply(-1j * self.t * A, v)) / (2j)
 
     def __str__(self) -> str:
         return '$\\sin(tA)$'

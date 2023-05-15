@@ -4,6 +4,7 @@ from typing import Callable
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import scipy as sp
 import scipy.sparse as sps
 import seaborn as sns
 from baryrat import aaa
@@ -48,8 +49,8 @@ def check_arnoldi(A: Matrix, v: np.ndarray, ms: list = None, title: str = None) 
     """
     Plots two measures for evaluating the implemented Arnoldi method.
 
-    - Orthogonality error: $\left\| V_m^*V_m - I \right\|_{2}$
-    - Projection error: $\left\| V_m^* A V_m - H_m \right\|_{max}$
+    - Orthogonality error: $\left\| V_m^*V_m - I \\right\|_{2}$
+    - Projection error: $\left\| V_m^* A V_m - H_m \\right\|_{max}$
 
     Args:
         A (Matrix): The matrix for building the Krylov subspace.
@@ -267,6 +268,8 @@ def get_convergence(
             data['time'].append(elapsed)
         pbar_method.update()
 
+        # TODO: Add 15, 20, 25, 30
+
         # Get RA-AAAm error
         pbar_method.desc = f'Methods: RA-AAAm'
         pbar_method.refresh()
@@ -296,10 +299,7 @@ def get_bound_taylor(ps: list, mmax: list, nms: int, alpha: float, vnorm: float 
     ms = np.array([int(m) for m in np.linspace(5, mmax, nms)])
     data = {'p': [], 'm': [], 'method': [], 'err': [], 'time': []}
     for p in ps:
-        mpps = np.ones(shape=(ms.max() + p, len(ms)), dtype=ms.dtype)
-        for j, m in enumerate(ms):
-            mpps[:(m + p), j] = np.arange(1, m + p + 1, dtype=ms.dtype)
-        logfrac = ms * np.log(alpha) - np.sum(np.log(mpps), axis=0)
+        logfrac = ms * np.log(alpha) - sp.special.gammaln(ms + p + 1)
         bound = 2 * vnorm * np.exp(logfrac)
         data['p'].extend([p] * nms)
         data['m'].extend(ms.tolist())

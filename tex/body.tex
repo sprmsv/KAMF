@@ -7,7 +7,6 @@
 \section{Matrix Functions}
 
 \subsection{Univariate Matrix Functions}
-\todo[color=pink]{Added the 3 definitions of matrix functions.}
 This section reviews the basic definition and properties of matrix functions
 discussed in detail in \cite{higham2008functions}.
 Let $A \in \mathbb{C}^{n \times n}$ have $s$ distinct eigenvalues $\Lambda(A) = \{\lambda_k\}_{k=1}^{s}$.
@@ -77,10 +76,6 @@ Some properties of the matrix exponential follows:
         }
     \label{fig:scalarphifunctionscomplexplane}
 \end{figure}
-\todo[color=pink]{
-    Updated \autoref{fig:scalarphifunctionscomplexplane}: Plots for negative real values.
-    The gradients are smaller for higher p's.
-}
 
 
 \subsection{\texorpdfstring{$\varphi$}{Phi}-functions}
@@ -171,6 +166,7 @@ Some properties of the matrix sine and cosine follows:
     \item For real $A \in \mathbb{R}^{n \times n}$ we have $\sin(A) = \mathfrak{Im}(e^{iA})$.
 \end{itemize}
 
+\begin{comment}
 \subsection{Bivariate Matrix Functions}
 Let $A \in \mathbb{C}^{n \times n}$ have $s$ distinct eigenvalues $\{\lambda_i\}_{i=1}^{s}$
 and $B \in \mathbb{C}^{m \times m}$ have $t$ distinct eigenvalues $\{\mu_i\}_{i=1}^{t}$.
@@ -199,6 +195,7 @@ unique Hermite interpolating polynomial which satisfies
 \end{equation*}
 $f$ only exists if the mixed partial derivatives in the definition exist and
 are continuous.
+\end{comment}
 
 \newpage
 \section{Methodology}\label{sec:methods}
@@ -681,14 +678,30 @@ since the matrix exponential does not inherit the sparsity of $A$.
 However, since we are only interested in the last column of the matrix exponential,
 we can exploit the sparsity of the embedded matrix $\hat{A}$ and directly compute
 the action of the matrix exponential on the last canonical basis vector of $\mathbb{R}^{n+p}$,
-$e_{n+p} = [0\:0\:\cdots\:1]^\top$, which gives its last column:
+$e_{n+p} = [0\;0\;\cdots\;1]^\top$, which gives its last column:
 \begin{equation*}
     \varphi_p(A) v = \exp(\hat{A})_{[1 : n, n+p]} = \exp(\hat{A}) e_{n+p} = \mathbf{\phi_{p}^{EX}}.
 \end{equation*}
 We use the \texttt{scipy.sparse.linalg.expm\_multiply} function from
 the SciPy library~\cite{SciPy2020} for this purpose.
 
-% TODO: simply express cos(A) and sin(A) using the matrix exponential and then use the same python function with the vector v.
+For computing the action of $\cos(A)$ and $\sin(A)$ on $v$, we take advantage of the properties
+of trigonometric matrix functions described in \autoref{sec:trigonometricmatrixfunctions} to get
+\begin{equation*}
+        \cos(A) v = \frac{1}{2}(\exp(iA)v + \exp(-iA)v),
+\end{equation*}
+\begin{equation*}
+        \sin(A) v = \frac{1}{2i}(\exp(iA)v - \exp(-iA)v).
+\end{equation*}
+For real $A$ and $v$, the above equations can be simplified to the real and
+the imaginary part of $\exp(iA)v$ for $\cos(A)v$ and $\sin(A)v$,
+respectively.
+The advantage of this technique for large sparse matrices is that instead of computing
+the whole matrices $\cos(A)$ and $\sin(A)$ using Padé approximations, we only need to
+compute the last column of two matrix exponentials. This is again achieved with the
+\texttt{scipy.sparse.linalg.expm\_multiply} function.
+
+\begin{comment}
 For computing the action of $\cos(A)$ and $\sin(A)$ on $v$, we take advantage of Corollary
 \ref{cor:embeddedmatrixsineandcosine} and combine it with the properties of trigonometric
 matrix functions described in \autoref{sec:trigonometricmatrixfunctions} to get
@@ -709,6 +722,7 @@ The advantage of this technique for large sparse matrices is that instead of com
 the whole matrices $\cos(A)$ and $\sin(A)$ using Padé approximations, we only need to
 compute the last column of two matrix exponentials. This is again achieved with the
 \texttt{scipy.sparse.linalg.expm\_multiply} function.
+\end{comment}
 
 For computing the action of $\mathrm{sinc}(A)$ on $v$, we use Corollary
 \ref{cor:embeddedmatrixsinc} and compute the last column of $\sin(\hat{A})$ with
@@ -718,11 +732,6 @@ first compute $u := \mathrm{sinc}(A)v$ with the method described above, and then
 compute $\mathrm{sinc}^2(A) v = \mathrm{sinc}(A) u$ by reading the last column
 of $\sin(\hat{A})$ with $\hat{A}$ being defined by
 \eqref{eq:embeddedmatrixdefinition} for the matrix-vector pair $(A, u)$.
-
-\subsection{Approximation of Bivariate Matrix Functions}
-\label{sec:krylovmethodbivariate}
-
-\todo[color=cyan]{Summerize the algorithm in \cite{kressner2019krylov}.}
 
 \section{Implementations and Experiments}
 
@@ -871,20 +880,36 @@ Considering the $[-\lambda, 0] \subset \mathbb{R}$ interval, the number of inter
 points for the AAA algorithm to work accurately scales with $\lambda$, which becomes a real burden
 when $\lambda \to \infty$. However, as depicted in \autoref{fig:polesAAA}, numerical results show that
 for this interval, the computed poles converge quite early when $\lambda$ is increased. We take
-advantage of this behaviour and we always compute the poles by running the AAA algorithm
-on the interval $[-1000, 0]$. \autoref{fig:errorsAAAmethods} shows the maximum error of the rational
-approximations of $\varphi$-functions by the AAA algorithm provided with different discretizations
-of the interval $[-1000, 0]$ and $[-\lambda, 0]$. These results show that discretizing the interval
-$[-1000, 0]$ with 2000 points spaced uniformly gives the best performance, even better than discretizing
-the whole interval with $\lambda$ points. Furthermore, we can see that with a fixed degree, the best
-rational approximation of the AAA aglorithm has a lower error for larger $p$'s.
+advantage of this behaviour and we pre-compute the poles by running the AAA algorithm
+on the interval $[-10^{4}, -10^{-16}]$ with $30000$ logarithmically spaced interpolation points.
+The poles for $\varphi_1$, $\varphi_3$, $\varphi_5$, and $\varphi_{10}$ are pre-computed and stored.
+\todo[color=cyan]{Maybe some words regarding the choice of logarithmic distribution.}
 
-For a rational Krylov subspace of order $m$, first we compute $k \le m$ poles $\eta_1, \dots, \eta_k$
+Using the poles from this strategy, the maximum errors of the scalar rational approximations on different
+intervals have been computed and are presented in \autoref{fig:errorsAAAms}. These plots show that
+it is possible to reach a maximum error of $10^{-12}$ with a degree less than $15$.
+On the other hand, it was observed that with degrees more than about $15$, the computed poles will take values
+close to or on the negative real axis.
+\autoref{fig:polesAAAms} illustrates this behavior for $\varphi_3$.
+With $m=15$, we can see that some poles are getting close to the real negative axis. With $m=20$, 3 poles
+lie on the negative real axis. With $m=25$, we can see that the situation is already very bad with many
+poles lying on the negative real axis.
+This could significantly impact the performance of the rational Krylov approximation method if the input
+matrix has real negative eigenvalues, which happens to be the case for our test matrices.
+Comparing the computed poles with different number of interpolation points in \autoref{fig:polesAAAms},
+it can be concluded that when $m$ gets larger, more interpolation points are needed in order to compute
+the poles accurately. This will justify the increased errors after $m=15$ for $\varphi_1$ in
+\autoref{fig:errorsAAAms}.
+
+For a rational Krylov subspace of dimension $m$, first take $k \le m$ pre-computed poles $\eta_1, \dots, \eta_k$
 by the AAA algorithm and we repeat them enough times to fill the $m$ poles $\xi_1, \dots, \xi_m$.
 With this scheme for the pole selection, the RA method is denoted by RA-AAAk where "k" is replaced
 by its number.
 We also consider the case with a single repeated pole $\xi_1 = \xi_2 = \cdots = \xi_{m} = 1$ and
 we deonte it by RA-ONES.
+When the poles are repeated, the LU decomposition of the matrix $I - A/\xi_j$ is computed
+once for each pole and it is used for solving $w = (I - A/\xi_j)^{-1} A v_j$ in line 4 of
+the modified version of \autoref{alg:polynomialarnoldi}.
 
 \todo[color=gray]{
     Two other strategies have been considered but this one performs the best.
@@ -892,8 +917,6 @@ we deonte it by RA-ONES.
     2: Keeping the first m poles and repeating the last one afterwards.
 }
 
-\todo[color=pink]{Added this remark on calculating the scalar $\varphi$-functions accurately for small $z$.}
-\todo[color=pink]{With this implementation I can consider the interval $[-\lambda, 0]$.}
 \begin{remark}
     In order to approximate the scalar function, the AAA algorithm needs to evaluate the scalar
     $\varphi_p(z)$ many times in the interval.
@@ -911,46 +934,34 @@ we deonte it by RA-ONES.
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=.9\textwidth]{img/AAA/poles_linspace_m10.png}
+    \includegraphics[width=.9\textwidth]{img/AAA/poles_lambda_log20k_m10.png}
     \caption{
-        The 10 first computed poles by the AAA algorithm for $\varphi$-functions with $\lambda$ uniformly
-        distributed interpolation points on the interval $[-\lambda, 0]$.
+        The first 10 poles computed by the AAA algorithm for $\varphi$-functions with $20000$
+        logarithmically spaced interpolation points on the interval $[-\lambda, -10^{-16}]$.
     }
     \label{fig:polesAAA}
 \end{figure}
 
-\todo[color=pink]{
-    Added \autoref{fig:errorsAAAmethods} which shows that the method is accurate enough and better than
-    considering the whole interval.
-}
-\todo[color=pink]{
-    \autoref{fig:errorsAAAmethods} also shows that the errors are smaller for larger $p$'s.
-}
-
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=.9\textwidth]{img/AAA/errors_methods_m10.png}
-    \caption{
-        Maximum error of the degree 10 rational approximation of $\varphi$-functions on the interval
-        $[-\lambda, 0]$.
-    }
-    \label{fig:errorsAAAmethods}
-\end{figure}
-
-\todo[color=pink]{
-    Added \autoref{fig:errorsAAAms} which shows that the accuracy of the approximations reach
-    machine precision with degree 20.
-}
-
-\begin{figure}[h!]
-    \centering
-    \includegraphics[width=.9\textwidth]{img/AAA/errors_ms.png}
+    \includegraphics[width=.9\textwidth]{img/AAA/errors_ms_log30k.png}
     \caption{
         Maximum error of the rational approximation of $\varphi$-functions on the interval
-        $[-\lambda, 0]$. The approximations are made on the interal $[-1000, 0]$ with 2000
-        equally spaced nodes.
+        $[-\lambda, 0]$.
+        The approximations are done on the interal $[-10^4, -10^{-16}]$ with $30000$
+        logarithmically spaced interpolation points.
     }
     \label{fig:errorsAAAms}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=.9\textwidth]{img/AAA/poles_ms_log_p03.png}
+    \caption{
+        Computed poles by the AAA algorithm for $\varphi_3$ with 20000 and 30000
+        logarithmically spaced interpolation points on the interval $[-10^{4}, -10^{-16}]$.
+    }
+    \label{fig:polesAAAms}
 \end{figure}
 
 
@@ -1011,10 +1022,12 @@ As $\lambda$ goes to $\infty$, the convergence of the PA method deteriorates sig
 On the other hand, the convergence of the RA method is not affected by the spectrum
 of the matrix.
 
+% CHECK:
 % Comparing the convergence of the two matrices, we observe that even when the matrices have the
 % same spectral interval, the convergence is much slower for $A_1$. This gives the notion that the distribution of
 % the eigenvalues also plays an important role in the convergence of the method.
 
+\todo{Add the Taylor bound to \autoref{fig:krylovapproximationmatrices}.}
 \begin{figure}[h]
     \centering
     \includegraphics[width=\textwidth]{img/krylovapproximation/cnvg_matrices_PA_n10000.png}
@@ -1080,11 +1093,6 @@ whole interval is considered.
     }
     \label{fig:rationalkrylovpoleselection}
 \end{figure}
-
-\todo[color=pink]{The behaviour of RA-AAAm could be justified when we note that the poles
-are obtained by approximating the function on an interval different than $[-\lambda, 0]$.
-Increasing the degree of the rational approximant, thus, could worsen the approximation when the
-whole interval is considered.}
 
 \FloatBarrier
 \subsection{Trigonometric Matrix Functions}
