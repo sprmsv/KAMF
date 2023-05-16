@@ -562,6 +562,8 @@ which results in the following lemma.
     \autoref{the:univariateerrorestimationgeneral} completes the proof.
 \end{proof}
 
+However, this bound becomes very large for the range of affordable $m$ when $\lambda$
+is large.
 Using the polynomial approximation given in \cite[Lemma A.1]{kressner2019krylov},
 we can get a better error bound for approximating $\varphi_1(A)v$.
 The polynomial approximation states that
@@ -994,7 +996,7 @@ for different matrices. The relative error is computed as:
     \end{subfigure}
     \vfill
     \begin{subfigure}[b]{.9\textwidth}
-        \includegraphics[width=\textwidth]{img/krylovapproximation/cnvg_ps_RA_n1e04.png}
+        \includegraphics[width=\textwidth]{img/krylovapproximation/cnvg_ps_RA-AAA1_n1e04.png}
         \caption{Rational Krylov approximation.}
         \label{fig:rationalkrylovapproximationevaluation}
     \end{subfigure}
@@ -1027,7 +1029,9 @@ of the matrix.
 % same spectral interval, the convergence is much slower for $A_1$. This gives the notion that the distribution of
 % the eigenvalues also plays an important role in the convergence of the method.
 
-\todo{Add the Taylor bound to \autoref{fig:krylovapproximationmatrices}.}
+\todo{Update \autoref{fig:krylovapproximationcputime}.}
+\todo{Update the comments about \autoref{fig:rationalkrylovpoleselection} and \autoref{fig:krylovapproximationcputime}.}
+
 \begin{figure}[h]
     \centering
     \includegraphics[width=\textwidth]{img/krylovapproximation/cnvg_matrices_PA_n10000.png}
@@ -1086,10 +1090,10 @@ whole interval is considered.
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=.9\textwidth]{img/AAA/cnvg_poles_n1e04_eigs.png}
+    \includegraphics[width=.9\textwidth]{img/krylovapproximation/cnvg_poles_n1e04_p03.png}
     \caption{
         Convergence of the approximation \eqref{eq:rationalkrylovapproximation} with different
-        pole selection strategies for $A_1$, $p=1$, and $n=10^4$.
+        pole selection strategies for $A_1$, $p=3$, and $n=10^4$.
     }
     \label{fig:rationalkrylovpoleselection}
 \end{figure}

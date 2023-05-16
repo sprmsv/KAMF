@@ -1,5 +1,6 @@
 from time import process_time
 from typing import Callable
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -114,16 +115,25 @@ def check_arnoldi(A: Matrix, v: np.ndarray, ms: list = None, title: str = None) 
     if title:
         fig.suptitle(title)
 
-def get_convergence(
+def get_convergence_phi(
+        funcs: list[MatrixFunction],
         A: Matrix,
         v: np.ndarray,
-        interval: tuple,
-        funcs: list[MatrixFunction],
+        ks: list[int],
         mmax_PA: int = None,
         mmax_RA: int = None,
         nms: int = 30,
+        poles_dir: str = './data/poles/phi',
 ) -> dict[str, list]:
-    """Gets convergence results of the approximation for multiple matrix functions."""
+    """Gets convergence results of the approximation for multiple phi-functions."""
+
+    poles_dir = Path(poles_dir)
+    assert poles_dir.exists()
+    for f in funcs:
+        assert isinstance(f, Phi)
+        for k in ks:
+            file = poles_dir / f'p{f.p:02d}_m{k:03d}.npy'
+            assert file.exists(), file.as_posix()
 
     ms_PA = [int(m) for m in np.linspace(5, mmax_PA, nms)] if mmax_PA else []
     ms_RA = [int(m) for m in np.linspace(5, mmax_RA, nms)] if mmax_RA else []
@@ -132,165 +142,120 @@ def get_convergence(
     pbar = tqdm(total=len(funcs), desc='Matrix functions', leave=False)
     for f in funcs:
         # Refresh the progress bar
-        pbar.desc = f'Matrix functions: {repr(f)}'
         pbar.total = len(funcs)
         pbar.refresh()
-
         pbar.desc = f'Matrix functions: {repr(f)}'
         pbar.refresh()
 
         # Create the inside progress bar
-        pbar_method = tqdm(total=7, desc='Methods', leave=False)
+        pbar_method = tqdm(total=(len(ks)+3), desc='Methods', leave=False)
 
         # Get the reference evaluation
         pbar_method.desc = f'Methods: EX'
         pbar_method.refresh()
-        data['f'].append(str(f))
-        data['m'].append(np.nan)
-        data['method'].append('EX')
         start = process_time()
         if sps.issparse(A):
             exact = f.exact(A, v)
         else:
             exact = f.exact_dense(A, v)
         elapsed = process_time() - start
+        data['f'].append(str(f))
+        data['m'].append(0)
+        data['method'].append('EX')
         data['err'].append(0)
         data['time'].append(elapsed)
         pbar_method.update()
 
-        # Get PA error
-        pbar_method.desc = f'Methods: PA'
-        pbar_method.refresh()
-        for m in ms_PA:
-            data['f'].append(str(f))
-            data['m'].append(m)
-            data['method'].append('PA')
-            start = process_time()
-            krylov = f.standardkrylov(A=A, v=v, m=m)
-            elapsed = process_time() - start
-            err = relative_error(approximation=krylov, exact=exact)
-            data['err'].append(err)
-            data['time'].append(elapsed)
-        pbar_method.update()
+        # Get PA errors
+        data = get_krylov_convergence(
+                f=f,
+                Av=(A, v),
+                exact=exact,
+                name=f'PA',
+                ms=ms_PA,
+                data=data,
+                poles=None,
+                pbar=pbar_method,
+        )
 
-        # Get RA-ONES error
-        pbar_method.desc = f'Methods: RA-ONES'
-        pbar_method.refresh()
-        for m in ms_RA:
-            data['f'].append(str(f))
-            data['m'].append(m)
-            data['method'].append('RA-ONES')
-            poles = np.array([1] * m)
-            start = process_time()
-            krylov = f.rationalkrylov(A=A, v=v, m=m, poles=poles)
-            elapsed = process_time() - start
-            err = relative_error(approximation=krylov, exact=exact)
-            data['err'].append(err)
-            data['time'].append(elapsed)
-        pbar_method.update()
+        # Get RA-ONES errors
+        poles = np.array([1])
+        data = get_krylov_convergence(
+                f=f,
+                Av=(A, v),
+                exact=exact,
+                name=f'RA-ONES',
+                ms=ms_RA,
+                data=data,
+                poles=poles,
+                pbar=pbar_method,
+        )
 
-        # Get the interval and the AAA discretization
-        a, b = interval
-        if isinstance(f, Phi):
-            Z = np.linspace(-1000, b, 1000)
-        else:
-            Z = np.linspace(a, b, 1000)
-
-        # Get RA-AAA1 error
-        pbar_method.desc = f'Methods: RA-AAA1'
-        pbar_method.refresh()
-        r = aaa(Z=Z, F=f.scalar, mmax=2, tol=-1)
-        rpoles = r.poles()
-        for m in ms_RA:
-            data['f'].append(str(f))
-            data['m'].append(m)
-            data['method'].append('RA-AAA1')
-            poles = np.concatenate([rpoles] * (m // len(rpoles) + 1))[:m]
-            start = process_time()
-            krylov = f.rationalkrylov(A=A, v=v, m=m, poles=poles)
-            elapsed = process_time() - start
-            err = relative_error(approximation=krylov, exact=exact)
-            data['err'].append(err)
-            data['time'].append(elapsed)
-        pbar_method.update()
-
-        # Get RA-AAA3 error
-        pbar_method.desc = f'Methods: RA-AAA3'
-        pbar_method.refresh()
-        r = aaa(Z=Z, F=f.scalar, mmax=4, tol=-1)
-        rpoles = r.poles()
-        for m in ms_RA:
-            data['f'].append(str(f))
-            data['m'].append(m)
-            data['method'].append('RA-AAA3')
-            poles = np.concatenate([rpoles] * (m // len(rpoles) + 1))[:m]
-            start = process_time()
-            krylov = f.rationalkrylov(A=A, v=v, m=m, poles=poles)
-            elapsed = process_time() - start
-            err = relative_error(approximation=krylov, exact=exact)
-            data['err'].append(err)
-            data['time'].append(elapsed)
-        pbar_method.update()
-
-        # Get RA-AAA5 error
-        pbar_method.desc = f'Methods: RA-AAA5'
-        pbar_method.refresh()
-        r = aaa(Z=Z, F=f.scalar, mmax=6, tol=-1)
-        rpoles = r.poles()
-        for m in ms_RA:
-            data['f'].append(str(f))
-            data['m'].append(m)
-            data['method'].append('RA-AAA5')
-            poles = np.concatenate([rpoles] * (m // len(rpoles) + 1))[:m]
-            start = process_time()
-            krylov = f.rationalkrylov(A=A, v=v, m=m, poles=poles)
-            elapsed = process_time() - start
-            err = relative_error(approximation=krylov, exact=exact)
-            data['err'].append(err)
-            data['time'].append(elapsed)
-        pbar_method.update()
-
-        # Get RA-AAA10 error
-        pbar_method.desc = f'Methods: RA-AAA10'
-        pbar_method.refresh()
-        r = aaa(Z=Z, F=f.scalar, mmax=11, tol=-1)
-        rpoles = r.poles()
-        for m in ms_RA:
-            data['f'].append(str(f))
-            data['m'].append(m)
-            data['method'].append('RA-AAA10')
-            poles = np.concatenate([rpoles] * (m // len(rpoles) + 1))[:m]
-            start = process_time()
-            krylov = f.rationalkrylov(A=A, v=v, m=m, poles=poles)
-            elapsed = process_time() - start
-            err = relative_error(approximation=krylov, exact=exact)
-            data['err'].append(err)
-            data['time'].append(elapsed)
-        pbar_method.update()
-
-        # TODO: Add 15, 20, 25, 30
-
-        # Get RA-AAAm error
-        pbar_method.desc = f'Methods: RA-AAAm'
-        pbar_method.refresh()
-        for m in ms_RA:
-            data['f'].append(str(f))
-            data['m'].append(m)
-            data['method'].append('RA-AAAm')
-            r = aaa(Z=Z, F=f.scalar, mmax=(m + 1), tol=-1)
-            poles = r.poles()
-            start = process_time()
-            krylov = f.rationalkrylov(A=A, v=v, m=m, poles=poles)
-            elapsed = process_time() - start
-            err = relative_error(approximation=krylov, exact=exact)
-            data['err'].append(err)
-            data['time'].append(elapsed)
-        pbar_method.update()
+        # Get RA-AAAk errors
+        for k in ks:
+            poles = np.load(poles_dir / f'p{f.p:02d}_m{k:03d}.npy')
+            data =  get_krylov_convergence(
+                f=f,
+                Av=(A, v),
+                exact=exact,
+                name=f'RA-AAA{k}',
+                ms=ms_RA,
+                data=data,
+                poles=poles,
+                pbar=pbar_method,
+            )
 
         pbar_method.close()
         pbar.update()
 
     pbar.close()
+
+    return data
+
+# TODO: Implement
+def get_convergence_tri():
+    ...
+
+def get_krylov_convergence(
+        f: MatrixFunction,
+        Av: tuple[Matrix, np.ndarray],
+        exact: np.ndarray,
+        name: str,
+        ms: list[int],
+        data: dict[str, list],
+        poles: np.ndarray = None,
+        pbar: tqdm = None,
+    ) -> dict[str, list]:
+    """Gets the convergence results for Krylov subspace method and writes the results to a dictionary."""
+
+    # Update the pbar description
+    if pbar:
+        pbar.desc = f'Methods: {name}'
+        pbar.refresh()
+
+    # Read the inputs
+    A, v = Av
+
+    for m in ms:
+        # Get the approximation
+        start = process_time()
+        if poles is None:
+            krylov = f.standardkrylov(A=A, v=v, m=m)
+        else:
+            krylov = f.rationalkrylov(A=A, v=v, m=m, poles=poles)
+        elapsed = process_time() - start
+        err = relative_error(approximation=krylov, exact=exact)
+
+        # Append to the data
+        data['f'].append(str(f))
+        data['m'].append(m)
+        data['method'].append(name)
+        data['err'].append(err)
+        data['time'].append(elapsed)
+
+    # Update the pbar
+    if pbar:
+        pbar.update()
 
     return data
 
@@ -309,7 +274,7 @@ def get_bound_taylor(ps: list, mmax: list, nms: int, alpha: float, vnorm: float 
 
     return data
 
-def get_bound_chebyshev(ps: list, mmax: list, nms: int, alpha: float, vnorm: float = 1):
+def get_bound_chebyshev(ps: list, mmax: list, nms: int, alpha: float, vnorm: float = 1) -> dict[str, list]:
     """
     Estimates for p's other than 1 are not valid.
     """
