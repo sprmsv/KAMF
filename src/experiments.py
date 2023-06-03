@@ -212,9 +212,83 @@ def get_convergence_phi(
 
     return data
 
-# TODO: Implement
-def get_convergence_tri():
-    ...
+def get_convergence_trig(
+    funcs: list[MatrixFunction],
+    A: Matrix,
+    v: np.ndarray,
+    ks: list[int],
+    interval=tuple[float],
+    mmax_PA: int = None,
+    mmax_RA: int = None,
+    nms: int = 30,
+):
+    """Gets convergence results of the approximation for multiple trigonometric functions."""
+
+
+    ms_PA = [int(m) for m in np.linspace(5, mmax_PA, nms)] if mmax_PA else []
+    ms_RA = [int(m) for m in np.linspace(5, mmax_RA, nms)] if mmax_RA else []
+    Z = np.linspace(interval[0], interval[1], 2000)
+
+    data = {'f': [], 'm': [], 'method': [], 'err': [], 'time': []}
+    pbar = tqdm(total=len(funcs), desc='Matrix functions', leave=False)
+    for f in funcs:
+        # Refresh the progress bar
+        pbar.total = len(funcs)
+        pbar.refresh()
+        pbar.desc = f'Matrix functions: {repr(f)}'
+        pbar.refresh()
+
+        # Create the inside progress bar
+        pbar_method = tqdm(total=(len(ks)+2), desc='Methods', leave=False)
+
+        # Get the reference evaluation
+        pbar_method.desc = f'Methods: EX'
+        pbar_method.refresh()
+        start = process_time()
+        if sps.issparse(A):
+            exact = f.exact(A, v)
+        else:
+            exact = f.exact_dense(A, v)
+        elapsed = process_time() - start
+        data['f'].append(str(f))
+        data['m'].append(0)
+        data['method'].append('EX')
+        data['err'].append(0)
+        data['time'].append(elapsed)
+        pbar_method.update()
+
+        # Get PA errors
+        data = get_krylov_convergence(
+            f=f,
+            Av=(A, v),
+            exact=exact,
+            name=f'PA',
+            ms=ms_PA,
+            data=data,
+            poles=None,
+            pbar=pbar_method,
+        )
+
+        # Get RA-AAAk errors
+        for k in ks:
+            poles = aaa(Z=Z, F=f.scalar, mmax=(k+1), tol=-1).poles()
+            data =  get_krylov_convergence(
+                f=f,
+                Av=(A, v),
+                exact=exact,
+                name=f'RA-AAA{k}',
+                ms=ms_RA,
+                data=data,
+                poles=poles,
+                pbar=pbar_method,
+            )
+
+        pbar_method.close()
+        pbar.update()
+
+    pbar.close()
+
+    return data
 
 def get_krylov_convergence(
         f: MatrixFunction,

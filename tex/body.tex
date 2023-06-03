@@ -1,12 +1,74 @@
 \section{Introduction}
 
-% Guttel: Matrix functions are interesting for scientific computing because they arise in explicit so- lution formulas for relevant algebraic and differential equations.
-\todo{Add motivation and applications (exponential integrators, etc.)}
+Efficient computation of certain matrix functions is one of the core topics in numerical linear
+algebra. Among other applications (see Chapter 2 of \cite{higham2008functions} for a
+comprehensive list of the applications), matrix functions often arise in solutions of
+differential equations:
+\begin{itemize}
+    \item The exact solution to the initial value problem
+        \begin{equation*}
+            \dot{x}(t) = A x(t), \; x(0) = x_0, \quad x \in \mathbb{C}^{n}, A \in \mathbb{C}^{n \times n}
+        \end{equation*}
+        is given by $x(t) = e^{tA} x_0$. More generally, with some assumptions on the smoothness
+        of a non-linear function $g$, the solution to the problem
+        \begin{equation}
+            \label{eq:exponentialintegratorproblem}
+            \dot{x}(t) = A x(t) + g(t, x(t)), \; x(0) = x_0, \quad x \in \mathbb{C}^{n}, A \in \mathbb{C}^{n \times n}
+        \end{equation}
+        is given by
+        \begin{equation}
+            \label{eq:exponentialintegratorsolution}
+            x(t) = e^{tA} x_0 + \int_{0}^{t}{e^{(t-s)A} g(t, x(s)) ds}.
+        \end{equation}
 
-\newpage
+    \item The exact solution to the initial value problem
+    \begin{equation*}
+        \dot{X}(t) = A X(t) + X(t) B, \; X(0) = C, \quad X \in \mathbb{C}^{m \times n}, A \in \mathbb{C}^{m \times m}, B \in \mathbb{C}^{n \times n}
+    \end{equation*}
+    is given by $X(t) = e^{tA} C e^{tB}$.
+
+    \item The second order differential initial value problem
+    \begin{equation*}
+        \ddot{X}(t) + A X(t) = 0, \; X(0) = B, \dot{X}(0) = C, \quad A, X \in \mathbb{C}^{n \times n}
+    \end{equation*}
+    has the solution
+    \begin{equation*}
+        X(t) = \cos(t \sqrt{A}) B + (\sqrt{A})^{-1} \sin(t \sqrt{A}) C
+        = \cos(t \sqrt{A}) B + t \mathrm{sinc}(t \sqrt{A}) C,
+    \end{equation*}
+    where the scalar sinc function is defined by $\mathrm{sinc}(z) = \sin(z) / z$.
+\end{itemize}
+
+Other related applications of matrix functions include, among others, the differential equations
+appearing in nuclear magnetic resonance, Markov models, and control theory.
+
+Nonlinear ordinary differential equations of type \eqref{eq:exponentialintegratorproblem}
+usually arise in spatial discretization of time dependant partial differential equations.
+Exponential integrators are a class of numerical methods for solving these problems, especially
+when they are stiff. These methods treat the linear term of \eqref{eq:exponentialintegratorsolution}
+exactly and integrate the other term numerically. They are based on the premise that most of the
+stiffness of the problem originates from the matrix $A$, not from the non-linear part. The matrix
+$A$ that appears in such problems is typically large and sparse. In several applications, this matrix
+is symmetric and semi-definite positive, which is the case we consider in this work.
+A presentation and review of these methods is given in \cite{minchev2005review}.
+A core step in these methods is the efficient computation of matrix-vector multiplications where
+the matrix is $\exp(tA)$ or $\varphi_p(tA)$ (to be defined later) for a suitable parameter $t$.
+
+In this work, we focus on the computation of the action of matrix exponentials and
+$\varphi$-functions on given vectors using Krylov subspace methods.
+In \autoref{sec:matrixfunctions}, basic definitions and properties of the matrix functions
+regarded in this work are given. In \autoref{sec:methods}, we present the theoretical ideas
+and the numerical methods. The definitions of polynomial and rational Krylov subspaces,
+the Arnoldi algorithm, the approximation methods, and the reference methods are presented.
+Furtheremore, theoretical bounds for the error of the polynomial Krylov subspace approximation
+are derived in this section. In \autoref{sec:experiments}, we present the details of our
+implementations of the methods in \autoref{sec:methods} and the results of numerical experiments.
+
+
 \section{Matrix Functions}
+\label{sec:matrixfunctions}
 
-\subsection{Univariate Matrix Functions}
+\subsection{Definitions}
 This section reviews the basic definition and properties of matrix functions
 discussed in detail in \cite{higham2008functions}.
 Let $A \in \mathbb{C}^{n \times n}$ have $s$ distinct eigenvalues $\Lambda(A) = \{\lambda_k\}_{k=1}^{s}$.
@@ -78,11 +140,11 @@ Some properties of the matrix exponential follows:
 \end{figure}
 
 
-\subsection{\texorpdfstring{$\varphi$}{Phi}-functions}
-\todo[color=cyan]{Add applications and motivation.}
-There is a class of matrix functions called $\varphi$-functions that are essential
-for exponential integrators for ordinary differential equations. Accurate and efficient
-evaluation of these functions is necessary for implementation of exponential integrators.
+\subsection{\texorpdfstring{$\varphi$}{Phi}-Fxunctions}
+In the core of exponential integrators for solving stiff problems of type
+\eqref{eq:exponentialintegratorproblem}, lies the computation of the application of
+$\varphi$-functions on certain vectors. Accurate and efficient computation of these vectors
+is vital for implementation of exponential integrators.
 For a scalar argument $z \in \mathbb{C}$, they are defined~\cite{higham2008functions} as
 \begin{equation}
     \label{eq:scalarphifunctionsdefinition}
@@ -90,7 +152,8 @@ For a scalar argument $z \in \mathbb{C}$, they are defined~\cite{higham2008funct
     \varphi_p(z) = \frac{1}{(p-1)!} \int_{0}^{1}{e^{(1 - \theta)z} \theta^{p-1} d\theta},
     \quad p \in \mathbb{N^*}.
 \end{equation}
-
+The parameter $p$ is related to the order of the exponential integrator and it typically takes
+values less tant $5$.
 The $\varphi$-functions satisfy~\cite{higham2008functions} the recurrence relation
 \begin{equation}
     \label{eq:scalarphifunctionsrecurrence}
@@ -197,8 +260,8 @@ $f$ only exists if the mixed partial derivatives in the definition exist and
 are continuous.
 \end{comment}
 
-\newpage
-\section{Methodology}\label{sec:methods}
+\section{Methodology}
+\label{sec:methods}
 
 \subsection{Krylov Subspaces and the Arnoldi Algorithm}\label{sec:arnoldi}
 Given a matrix $A \in \mathbb{C}^{n \times n}$ and a vector $v \neq 0 \in \mathbb{C}^n$,
@@ -736,8 +799,9 @@ of $\sin(\hat{A})$ with $\hat{A}$ being defined by
 \eqref{eq:embeddedmatrixdefinition} for the matrix-vector pair $(A, u)$.
 
 \section{Implementations and Experiments}
+\label{sec:experiments}
 
-\subsection{\texorpdfstring{$\varphi$}{Phi}-functions}
+\subsection{\texorpdfstring{$\varphi$}{Phi}-Functions}
 \subsubsection*{Test Matrices}
 \label{sec:testmatrices}
 
@@ -996,7 +1060,7 @@ for different matrices. The relative error is computed as:
     \end{subfigure}
     \vfill
     \begin{subfigure}[b]{.9\textwidth}
-        \includegraphics[width=\textwidth]{img/krylovapproximation/cnvg_ps_RA-AAA1_n1e04.png}
+        \includegraphics[width=\textwidth]{img/krylovapproximation/cnvg_ps_RA-ONES_n1e04.png}
         \caption{Rational Krylov approximation.}
         \label{fig:rationalkrylovapproximationevaluation}
     \end{subfigure}
@@ -1029,7 +1093,6 @@ of the matrix.
 % same spectral interval, the convergence is much slower for $A_1$. This gives the notion that the distribution of
 % the eigenvalues also plays an important role in the convergence of the method.
 
-\todo{Update \autoref{fig:krylovapproximationcputime}.}
 \todo{Update the comments about \autoref{fig:rationalkrylovpoleselection} and \autoref{fig:krylovapproximationcputime}.}
 
 \begin{figure}[h]
@@ -1099,44 +1162,85 @@ whole interval is considered.
 \end{figure}
 
 \FloatBarrier
-\subsection{Trigonometric Matrix Functions}
-\todo{Describe the context and linear elasticity.}
+\subsection{Trigonometric Functions}
+Using finite elements for solving the PDE corresponding to linear elasticity problem,
+\cite{voet2020linearelasticity} derives the following initial value problem
+\begin{equation*}
+    M \mathbf{\ddot{x}}(t) + K \mathbf{x}(t) = \mathbf{f}(t), \quad
+    \mathbf{x}(0) = \mathbf{u'_0}, \; \mathbf{\dot{x}}(0) = \mathbf{v'_1},
+\end{equation*}
+where $M$ and $K$ are both symmetric positive definite matrices.
+Computing the Cholesky factorization of $M = LL^{\top}$, pre-multiplying the problem by $L^{-1}$,
+and a change of variables results
+\begin{equation}
+    \mathbf{\ddot{u}}(t) + A \mathbf{u}(t) = \mathbf{g}(t), \quad
+    \mathbf{u}(0) = \mathbf{u_0}, \; \mathbf{\dot{u}}(0) = \mathbf{v_0},
+\end{equation}
+where
+\begin{equation*}
+    \begin{aligned}
+        & \mathbf{u}(t) = L^{\top} \mathbf{x}(t), \quad & A = L^{-1} K L^{-\top}, \quad & \mathbf{g}(t) = L^{-1} \mathbf{f}(t), & \\
+        & \mathbf{u_0} = \mathbf{u'_0}, & \mathbf{v_0} = \mathbf{v'_0}. & &
+    \end{aligned}
+\end{equation*}
+The solution to the problem satisfies
+\begin{equation}
+    \mathbf{u}(t) = \cos(t\sqrt{A}) + t \mathrm{sinc}(t\sqrt{A}) + \frac{t^2}{2} \mathrm{sinc}^2(\frac{t}{2} \sqrt{A}).
+\end{equation}
+
+% TODO: We can repeat with small time steps
+% TODO: We apply the methods for these functions
+% TODO: Matrix A
+
 \subsubsection*{Test Matrices}
 \todo{Describe the linear elasticity matrices.}
+
 \subsubsection*{Pole Selection}
 \todo{Describe the pole selection and the reason behind it.}
 \todo[color=gray]{
-    AAAn performs the best with n=1.
+    I use 2000 points on the spectral interval of the input matrix.
 }
-\todo[color=gray]{
-    I use 1000 points on the spectral interval of the input matrix.
-}
+
 \subsubsection*{Numerical Results}
 \todo{Comment on the figures.}
 
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=.9\textwidth]{img/trigonometric/cnvg_h4e-02_methods_PA:RA.png}
-    \caption{
-        Convergence of the approximations \eqref{eq:polynomialkrylovapproximation}
-        and \eqref{eq:rationalkrylovapproximation} with time steps for $A_{LE}^{h=0.04}$.
-        }
-        \label{fig:trigonometricconvergencetimesteps}
-\end{figure}
+Performance is not good because of the oscillatory behavior of the functions.
+
+
+- Sudden drops in PA is because the polynomial approximants do not perform well
+before a certain degree.
+
+- The strange behavior of the RA methods:
+Because of the oscillations of these functions, the rational approximants have a
+hard time doing a good job.
+As shown in \autoref{fig:trigonometricAAAerrors}, for $t = 5e-06$, a rational function of degree below $20$
+is not able to approximate the trigonometric functions well. This minimum degree increases for larger
+time steps. For $t = 2e-05$, a rational function of degree at least $40$ is needed.
+
 
 \begin{figure}[h]
-        \centering
-        \includegraphics[width=.9\textwidth]{img/trigonometric/cnvg_h7e-02_methods.png}
-        \caption{
-            Convergence of the approximations \eqref{eq:polynomialkrylovapproximation}
-            and \eqref{eq:rationalkrylovapproximation} with different
-            rational function approximation methods for $A_{LE}^{h=0.07}$.
+    \centering
+    \includegraphics[width=.9\textwidth]{img/trigonometric/AAA_errors_t5e-06.png}
+    \caption{
         }
-        \label{fig:trigonometricconvergencemethods}
+        \label{fig:trigonometricAAAerrors}
+\end{figure}
+
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=.9\textwidth]{img/trigonometric/cnvg_h4e-02_methods_ts.png}
+    \caption{
+        Convergence of the approximations \eqref{eq:polynomialkrylovapproximation}
+        and \eqref{eq:rationalkrylovapproximation} for $A_{LE}^{h=0.04}$. Each column
+        shows plots for one function. Each row shows plots for one time step.
+        }
+        \label{fig:trigonometricconvergences}
 \end{figure}
 
 \section{Conclusion}
 \label{sec:conclusion}
+\todo{Write conclusion}
 
 % Cite Trefethen (Approximation Theory, p278):
 % Polynomials cannot do the job at all for exp(x) in [-\infty, 0]!!
