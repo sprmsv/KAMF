@@ -8,6 +8,7 @@ SparseMatrix = Union[
     sp.sparse.csc_matrix,
     sp.sparse.csr_matrix,
 ]
+
 Matrix = Union[
     np.ndarray,
     SparseMatrix,

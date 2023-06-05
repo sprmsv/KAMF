@@ -7,13 +7,12 @@ import scipy.sparse as sps
 from scipy import linalg as la
 from scipy.sparse import linalg as spla
 
-from src.helpers import multiply_by_inverse
 from src.definitions import Matrix, SparseMatrix
 
 
 def standardarnoldi(A: Matrix, v: np.ndarray, m: int, ro: bool = True) -> tuple[np.ndarray, np.ndarray]:
     """
-    Standard Arnoldi algorithm using matrix multiplications (lecture notes).
+    Standard Arnoldi algorithm using matrix multiplications.
     """
 
     # Check dimensions
@@ -50,9 +49,9 @@ def standardarnoldi(A: Matrix, v: np.ndarray, m: int, ro: bool = True) -> tuple[
 
     return V_m, H_m
 
-def rationalarnoldi(A: Matrix, v: np.ndarray, m: int, poles: np.ndarray, ro: bool = True) -> tuple[np.ndarray, np.ndarray, np.ndarray, float]:
+def rationalarnoldi(A: Matrix, v: np.ndarray, m: int, poles: np.ndarray, ro: bool = True, repeat: str = 'all') -> tuple[np.ndarray, np.ndarray, np.ndarray, float]:
     """
-    Rational Arnoldi algorithm using matrix multiplications (lecture notes).
+    Rational Arnoldi algorithm using matrix multiplications.
     """
 
     # Check dimensions
@@ -72,7 +71,10 @@ def rationalarnoldi(A: Matrix, v: np.ndarray, m: int, poles: np.ndarray, ro: boo
 
     V_m[:, 0] = v / np.linalg.norm(v)
     for j in range(0, m):
-        w = solvers[j % k](b=(A @ V_m[:, j]))
+        if repeat == 'all':
+            w = solvers[j % k](b=(A @ V_m[:, j]))
+        elif repeat == 'last':
+            w = solvers[j if (j < k) else -1](b=(A @ V_m[:, j]))
         H_m[:(j+1), j] = V_m[:, :(j+1)].conjugate().T @ w
         u_hat = w - V_m[:, :(j+1)] @ H_m[:(j+1), j]
 
@@ -158,7 +160,7 @@ class MatrixFunction(ABC):
 
         return fAv
 
-    def rationalkrylov(self, A: Matrix, v: np.ndarray, m: int, poles: np.ndarray, ro: bool = True) -> np.ndarray:
+    def rationalkrylov(self, A: Matrix, v: np.ndarray, m: int, poles: np.ndarray, ro: bool = True, repeat: str = 'all') -> np.ndarray:
         """Computes the action of the matrix function on a vector using the rational Krylov approximation with k repeated poles."""
 
         # Check types
@@ -172,7 +174,7 @@ class MatrixFunction(ABC):
         assert m > 0, f'{m} <= 0'
 
         # Rational Arnoldi method
-        V_m, _, _, _ = rationalarnoldi(A=A, v=v, m=m, poles=poles, ro=ro)
+        V_m, _, _, _ = rationalarnoldi(A=A, v=v, m=m, poles=poles, ro=ro, repeat=repeat)
         A_m = V_m.conjugate().T @ A @ V_m
 
         # Calculate the approximation of f(A) v
@@ -373,88 +375,6 @@ class Cosine(MatrixFunction):
 
     def __repr__(self) -> str:
         return f'Cosine(t={self.t:.0e})'
-
-class CosineSqrt(MatrixFunction):
-    """Class for computing $\cos(t \sqrt{A}) v$"""
-
-    def __init__(self, t: float = 1.):
-        super().__init__()
-        self.t = t
-
-    def scalar(self, z: complex) -> complex:
-        return np.cos(self.t * np.sqrt(z))
-
-    def exact_dense(self, A: Matrix, v: np.ndarray) -> np.ndarray:
-        """Computes the action of the matrix function on a vector by converting it to a dense matrix."""
-
-        # Check dimensions
-        n = len(v)
-        assert A.shape == (n, n), f'{A.shape} != {(n, n)}'
-
-        # Convert A to dense matrixs
-        if sps.issparse(A):
-            A = A.toarray()
-
-        # Calculate the square root of A
-        H = la.sqrtm(A)
-
-        return la.cosm(self.t * H) @ v
-
-    def exact_(self, A: SparseMatrix, v: np.ndarray) -> np.ndarray:
-        """Computes the action of the matrix function on a vector by building the corresponding embedded matrix."""
-
-        # Check dimensions
-        n = len(v)
-        dtype = A.dtype
-        assert A.shape == (n, n), f'{A.shape} != {(n, n)}'
-
-        # Calculate the square root
-        if sps.issparse(A):
-            H = la.sqrtm(A.toarray())
-        else:
-            H = la.sqrtm(A)
-
-        # Construct the embedded matrix
-        A_h = sps.lil_matrix(np.zeros(shape=(n+1, n+1), dtype=dtype))
-        A_h[:n, :n] = self.t * H
-        A_h[:n, n] = self.t * H @ v
-        if A.format == 'csc':
-            A_h = A_h.tocsc()
-        elif A.format == 'csr':
-            A_h = A_h.tocsr()
-
-        # Compute the last column of the exponential of the embedded matrix
-        enpp = np.zeros(shape=(n+1,), dtype=dtype)
-        enpp[-1] = 1
-
-        if dtype == 'complex':
-            return (v + .5 * (spla.expm_multiply(1j * A_h, enpp)[:n] + spla.expm_multiply(-1j * A_h, enpp)[:n]))
-        else:
-            return (v + spla.expm_multiply(1j * A_h, enpp)[:n].real)
-
-    def exact(self, A, v: np.ndarray) -> np.ndarray:
-        """Computes the action of the matrix function on a vector."""
-
-        # Check dimensions
-        n = len(v)
-        assert A.shape == (n, n), f'{A.shape} != {(n, n)}'
-
-        # Calculate the square root
-        if sps.issparse(A):
-            H = la.sqrtm(A.toarray())
-        else:
-            H = la.sqrtm(A)
-
-        if H.dtype != 'complex' and v.dtype != 'complex':
-            return spla.expm_multiply(1j * self.t * H, v).real
-        else:
-            return (spla.expm_multiply(1j * self.t * H, v) + spla.expm_multiply(-1j * self.t * H, v)) / (2)
-
-    def __str__(self) -> str:
-        return '$\\cos(t \sqrt{A})$'
-
-    def __repr__(self) -> str:
-        return f'CosineSqrt(t={self.t:.0e})'
 
 class Sine(MatrixFunction):
     """Class for computing $sin(tA) v$"""

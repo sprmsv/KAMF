@@ -217,6 +217,7 @@ def get_convergence_trig(
     A: Matrix,
     v: np.ndarray,
     ks: list[int],
+    repeat: str = 'all',
     interval=tuple[float],
     mmax_PA: int = None,
     mmax_RA: int = None,
@@ -272,6 +273,8 @@ def get_convergence_trig(
         # Get RA-AAAk errors
         for k in ks:
             poles = aaa(Z=Z, F=f.scalar, mmax=(k+1), tol=-1).poles()
+            if repeat == 'last':
+                poles = np.concatenate([poles, [np.inf]])
             data =  get_krylov_convergence(
                 f=f,
                 Av=(A, v),
@@ -280,6 +283,7 @@ def get_convergence_trig(
                 ms=ms_RA,
                 data=data,
                 poles=poles,
+                repeat=repeat,
                 pbar=pbar_method,
             )
 
@@ -298,6 +302,7 @@ def get_krylov_convergence(
         ms: list[int],
         data: dict[str, list],
         poles: np.ndarray = None,
+        repeat: str = 'all',
         pbar: tqdm = None,
     ) -> dict[str, list]:
     """Gets the convergence results for Krylov subspace method and writes the results to a dictionary."""
@@ -316,7 +321,7 @@ def get_krylov_convergence(
         if poles is None:
             krylov = f.standardkrylov(A=A, v=v, m=m)
         else:
-            krylov = f.rationalkrylov(A=A, v=v, m=m, poles=poles)
+            krylov = f.rationalkrylov(A=A, v=v, m=m, poles=poles, repeat=repeat)
         elapsed = process_time() - start
         err = relative_error(approximation=krylov, exact=exact)
 

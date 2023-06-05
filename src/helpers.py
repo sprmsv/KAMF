@@ -11,13 +11,13 @@ from src.definitions import Matrix, SparseMatrix
 def get_FD_matrix(n: int, d: int, scale: bool = False, dtype: np.dtype = np.float64, format: str = 'csc') -> SparseMatrix:
     """
     Returns the stiffness matrix for finite difference discretization
-    of the Poisson's equation with a uniform grid.
+    of the Laplace operator with a uniform grid.
 
     Args:
         n: Number of interior grid points.
         d: Dimension of the problem.
         dtype: Data type. Defaults to np.float64.
-        format: _description_. Defaults to 'csc'.
+        format: The sparse format. Defaults to 'csc'.
 
     Returns:
         SparseArray: The stiffness matrix.
@@ -66,60 +66,6 @@ def relative_error(approximation: Matrix, exact: Matrix) -> float:
     err = approximation - exact
 
     return np.linalg.norm(err) / np.linalg.norm(exact)
-
-def multiply_by_inverse(A: Matrix, B: Matrix, mode: str = 'left') -> np.ndarray:
-    """
-    Multiplies B by A^{-1} from left or right by solving
-    the corresponding linear systems of equations.
-    Similar to A \ B in Matlab.
-
-    - left: Returns A^{-1} B
-    - left: Returns B A^{-1}
-    """
-
-    # Set the solve method based on the type of the input
-    if sps.issparse(A) and sps.issparse(B):
-        solve = spla.spsolve
-        sparse = True
-    elif (not sps.issparse(A)) and (not sps.issparse(B)):
-        solve = la.solve
-        sparse = False
-    else:
-        raise Exception('Both matrices should be either sparse or dense.')
-
-    # Solve the system
-    if mode == 'left':
-        C = solve(A, B)
-    elif mode == 'right':
-        C = solve(A.T, B.T).T
-    else:
-        raise Exception('Mode not supported.')
-
-    return C
-
-def calculate_relgap(
-        A: SparseMatrix,
-        lam_min1: float = None, lam_min2: float = None, lam_max1: float = None, lam_max2: float = None,
-    ) -> float:
-    """Calculates the relative gap of a given Hermitian matrix."""
-
-    if (not lam_min1) or (not lam_min2):
-        sa = spla.eigsh(A, k=2, which='SA')[0]
-    if not lam_min1:
-        lam_min1 = sa[0]
-    if not lam_min2:
-        lam_min2 = sa[1]
-    if (not lam_max1) or (not lam_max2):
-        la_ = spla.eigsh(A, k=2, which='LA')[0]
-    if not lam_max2:
-        lam_max2 = la_[0]
-    if not lam_max1:
-        lam_max1 = la_[1]
-
-    relgap_l = float((lam_min2 - lam_min1) / (lam_max1 - lam_min1))
-    relgap_r = float((lam_max1 - lam_max2) / (lam_max1 - lam_min1))
-
-    return relgap_l, relgap_r
 
 def plot_eigenvalues(As: list[Matrix], legends: list[str] = None, xticks: list = None, range_: tuple = None) -> None:
     """Plots the eigenvalues of several matrices."""
