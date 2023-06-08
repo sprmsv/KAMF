@@ -11,9 +11,7 @@ from src.definitions import Matrix, SparseMatrix
 
 
 def standardarnoldi(A: Matrix, v: np.ndarray, m: int, ro: bool = True) -> tuple[np.ndarray, np.ndarray]:
-    """
-    Standard Arnoldi algorithm using matrix multiplications.
-    """
+    """Standard Arnoldi process (Algorithm 1)."""
 
     # Check dimensions
     n = len(v)
@@ -51,7 +49,8 @@ def standardarnoldi(A: Matrix, v: np.ndarray, m: int, ro: bool = True) -> tuple[
 
 def rationalarnoldi(A: Matrix, v: np.ndarray, m: int, poles: np.ndarray, ro: bool = True, repeat: str = 'all') -> tuple[np.ndarray, np.ndarray, np.ndarray, float]:
     """
-    Rational Arnoldi algorithm using matrix multiplications.
+    Rational Arnoldi process (Algorithm 2).
+    If the number of the poles is not sufficient, they get repeated.
     """
 
     # Check dimensions
@@ -194,7 +193,7 @@ class Phi(MatrixFunction):
         self.t = t
 
     def scalar(self, z: Union[float, complex, np.ndarray]) -> np.ndarray:
-        """Computes the scalar function using the recurrence relation."""
+        """Computes the scalar function."""
 
         # Convert to ndarray
         if not isinstance(z, np.ndarray):
@@ -317,6 +316,8 @@ class Cosine(MatrixFunction):
         self.t = t
 
     def scalar(self, z: complex) -> complex:
+        """Computes the scalar function."""
+
         return np.cos(self.t * z)
 
     def exact_dense(self, A: Matrix, v: np.ndarray) -> np.ndarray:
@@ -384,6 +385,8 @@ class Sine(MatrixFunction):
         self.t = t
 
     def scalar(self, z: complex) -> complex:
+        """Computes the scalar function."""
+
         return np.sin(self.t * z)
 
     def exact_dense(self, A: Matrix, v: np.ndarray) -> np.ndarray:
@@ -452,6 +455,8 @@ class Sinc(MatrixFunction):
         self.t = t
 
     def scalar(self, z: complex) -> complex:
+        """Computes the scalar function."""
+
         return self.t * (np.sin(self.t * z) / (self.t * z))
 
     def exact_dense(self, A: Matrix, v: np.ndarray) -> np.ndarray:
@@ -508,6 +513,8 @@ class Sinc2(MatrixFunction):
         self.sinc = Sinc(t=t/2)
 
     def scalar(self, z: complex) -> complex:
+        """Computes the scalar function."""
+
         return .5 * (self.t ** 2) * ((np.sin(.5 * self.t * z) / (.5 * self.t * z)) ** 2)
 
     def exact_dense(self, A: Matrix, v: np.ndarray) -> np.ndarray:

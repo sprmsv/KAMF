@@ -130,8 +130,8 @@ dmypy.json
 
 # Custom
 refs/
-data/
 .DS_Store
 tex/.out/
 experiments_tmp.csv
 tmp.*
+.vscode/

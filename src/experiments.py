@@ -17,6 +17,14 @@ from src.solvers import Phi, MatrixFunction, rationalarnoldi, standardarnoldi
 
 
 def get_test_matrices(n: int, interval: tuple[float], eigs: dict = None):
+    """Returns the test matrices for phi-functions.
+
+    Args:
+        n (int): Size of the matrices.
+        interval (tuple[float]): The spectral interval of the matrices.
+        eigs (dict, optional): The eigenvalues of the matrices, if available. Defaults to None.
+    """
+
     # Check the shape of the 2D Laplace matrix
     assert (n ** .5) % 1 == 0
 
@@ -339,6 +347,7 @@ def get_krylov_convergence(
     return data
 
 def get_bound_taylor(ps: list, mmax: list, nms: int, alpha: float, vnorm: float = 1):
+    """Gets the theoretical error bound using the Taylor expansion."""
 
     ms = np.array([int(m) for m in np.linspace(5, mmax, nms)])
     data = {'p': [], 'm': [], 'method': [], 'err': [], 'time': []}
@@ -353,9 +362,10 @@ def get_bound_taylor(ps: list, mmax: list, nms: int, alpha: float, vnorm: float 
 
     return data
 
-def get_bound_chebyshev(ps: list, mmax: list, nms: int, alpha: float, vnorm: float = 1) -> dict[str, list]:
+def get_bound_bestpoly(ps: list, mmax: list, nms: int, alpha: float, vnorm: float = 1) -> dict[str, list]:
     """
-    Estimates for p's other than 1 are not valid.
+    Gets the theoretical error bound using the best polynomial approximation.
+    This bound is only valid for p=1.
     """
 
     ms = np.array([int(m) for m in np.linspace(5, mmax, nms)])

@@ -48,7 +48,7 @@ Other notable applications of matrix functions include the differential equation
 appearing in nuclear magnetic resonance, Markov models, and control theory.
 
 Nonlinear ordinary differential equations of type \eqref{eq:exponentialintegratorproblem}
-usually arise in spatial discretizations of time dependant partial differential equations.
+usually arise in spatial discretization of time dependant partial differential equations.
 Exponential integrators are a class of numerical methods for solving these problems, especially
 when they are stiff. These methods treat the linear term of \eqref{eq:exponentialintegratorsolution}
 exactly and integrate the other term numerically. They are based on the premise that most of the
@@ -240,7 +240,7 @@ $\mathrm{sinc}(z) = \sin(z) / z$ is defined by
 \end{equation}
 Some properties of the matrix sine and cosine follow:
 \begin{itemize}
-    \item The matrix analoge of Euler's formula reads $e^{iA} = \cos(A) + i \sin(A)$.
+    \item The matrix form of Euler's formula reads $e^{iA} = \cos(A) + i \sin(A)$.
     \item For all $A \in \mathbb{C}^{n \times n}$ we have $\cos(A) = \frac{1}{2} (e^{iA} + e^{-iA})$.
     \item For all $A \in \mathbb{C}^{n \times n}$ we have $\sin(A) = \frac{1}{2i} (e^{iA} - e^{-iA})$.
     \item For all $A \in \mathbb{C}^{n \times n}$ we have $\cos^2(A) + \sin^2(A) = I$.
@@ -263,7 +263,7 @@ the Krylov subspace of dimension $m \leq n$ for them is defined \cite{golub2013m
     \end{aligned}
 \end{equation}
 where $\Pi_{m-1}$ is the set of all polynomials of order less than or equal to $m-1$.
-Krylov supspaces are essential in many methods in numerical linear algebra
+Krylov subspaces are essential in many methods in numerical linear algebra
 for solving eigenvalue problems and linear systems.
 However, the vectors $\mathbf{v}, A\mathbf{v}, A^{2}\mathbf{v}, \dots, A^{m-1}\mathbf{v}$
 are not a good basis for $\mathcal{K}_m(A, \mathbf{v})$. We know from the power method that
@@ -342,7 +342,7 @@ a lot from pre-computing the LU decomposition or, if applicable, the Cholesky fa
 of $(I - A / \xi_j)$ outside of the main loop. These ideas are summarized in Algorithm
 \ref{alg:rationalarnoldi}.
 
-\begin{algorithm}[ht!]
+\begin{algorithm}[H]
     \caption{Rational Arnoldi algorithm with k repeated poles}
     \label{alg:rationalarnoldi}
     \KwIn{
@@ -358,7 +358,7 @@ of $(I - A / \xi_j)$ outside of the main loop. These ideas are summarized in Alg
             Retrieve $P_j$, $L_j$, and $U_j$ from previous iterations\;
         }
         \Else{
-            Compute $P_j L_j U_j = (I - A / \xi_j)$\;        
+            Compute $P_j L_j U_j = (I - A / \xi_j)$\;
         }
     }
     Set $\mathbf{v_1} = \mathbf{v} / \left\| \mathbf{v} \right\|_2$\;
@@ -386,8 +386,6 @@ The rational Arnoldi factorization reads
 \end{equation}
 where $D_m = \diag(\xi_1^{-1}, \dots, \xi_m^{-1})$. Note that the rational Krylov subspace
 with a repeated infinity pole is identical to the standard (polynomial) Krylov subspace.
-
-\FloatBarrier
 
 \subsection{Polynomial Krylov Subspace Approximation}
 \label{sec:polynomialkrylovapproximation}
@@ -847,14 +845,15 @@ of $\sin(\hat{A})$ with $\hat{A}$ being defined by
 
 \section{Implementations and Experiments}
 \label{sec:experiments}
+The implementations\footnote{The codes are available in \href{https://github.com/sepeehr/KAMF}{Github}.}
+of the methods described in \autoref{sec:methods} are presented and evaluated in this section.
 
 \subsection{\texorpdfstring{$\varphi$}{Phi}-Functions}
 \label{sec:resultsphifunctions}
 
 \subsubsection*{Test Matrices}
 
-In this section, the implementations of the methods described in \autoref{sec:methods}
-are presented and evaluated. In order to test the methods, we consider the matrices that appear
+In order to test the methods, we consider the matrices that appear
 after the finite difference discretization of 1D and 2D Laplace operator using a uniform grid.
 These matrices are sparse, real, symmetric, and definite.
 They are obtained by
@@ -941,6 +940,16 @@ exponential and the $\varphi$-functions, the gradients become very small as we g
 from the origin to the left side of the real axis (i.e.,
 as $\mathfrak{Re}(z) \to -\infty$ in \autoref{fig:scalarphifunctionscomplexplane}).
 
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=.9\textwidth]{img/AAA/poles_lambda_log20k_m10.png}
+    \caption{
+        The first 10 poles computed by the AAA algorithm for $\varphi$-functions with $20000$
+        logarithmically spaced interpolation points on the interval $[-\lambda, -10^{-16}]$.
+    }
+    \label{fig:polesAAA}
+\end{figure}
+
 Using the poles from this strategy, the maximum errors of the scalar rational approximations on different
 intervals have been computed and are presented in \autoref{fig:errorsAAAms}. These plots show that
 it is possible to reach a maximum error of $10^{-12}$ with a degree less than $15$.
@@ -961,12 +970,35 @@ points are needed in order to compute the poles accurately.
 This justifies the unexpected increases in the errors in \autoref{fig:errorsAAAms}
 for $\varphi_1$ and $\varphi_5$.
 
-For a rational Krylov subspace of dimension $m$, we take $k \le m$ pre-computed poles $\eta_1, \dots, \eta_k$
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=.9\textwidth]{img/AAA/errors_ms_log30k.png}
+    \caption{
+        Maximum error of the rational approximation of scalar $\varphi$-functions
+        on the interval $[-\lambda, 0]$.
+        The approximations are done on the interval $[-10^4, -10^{-16}]$ with $30000$
+        logarithmically spaced interpolation points.
+    }
+    \label{fig:errorsAAAms}
+\end{figure}
+
+For a rational Krylov subspace of dimension $m$, we take $k$ pre-computed poles $\eta_1, \dots, \eta_k$
 by the AAA algorithm and we repeat them enough times to fill the $m$ poles $\xi_1, \dots, \xi_m$.
+When $m < k$, we just take the first $m$ poles.
 With this scheme for the pole selection, the rational Krylov subspace method is denoted by
-\texttt{RA-AAAk} where \textit{k} is replaced by its value.
+\texttt{RA-AAAk} where \texttt{k} is replaced by its value.
 We also consider the case with a single repeated pole $\xi_1 = \xi_2 = \cdots = \xi_{m} = 1$ and
 we denote it by \texttt{RA-ONES}.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=.9\textwidth]{img/AAA/poles_ms_log_p03.png}
+    \caption{
+        Computed poles by the AAA algorithm for $\varphi_3$ with 20000 and 30000
+        logarithmically spaced interpolation points on the interval $[-10^{4}, -10^{-16}]$.
+    }
+    \label{fig:polesAAAms}
+\end{figure}
 
 \begin{remark}
     In order to approximate the scalar function, the AAA algorithm needs to evaluate the scalar
@@ -983,38 +1015,6 @@ we denote it by \texttt{RA-ONES}.
     \eqref{eq:embeddedmatrixdefinition} for the matrix-vector pair
     $(z \in \mathbb{C}^{1 \times 1}, 1 \in \mathbb{C}^{1})$.
 \end{remark}
-
-\begin{figure}[h!]
-    \centering
-    \includegraphics[width=.9\textwidth]{img/AAA/poles_lambda_log20k_m10.png}
-    \caption{
-        The first 10 poles computed by the AAA algorithm for $\varphi$-functions with $20000$
-        logarithmically spaced interpolation points on the interval $[-\lambda, -10^{-16}]$.
-    }
-    \label{fig:polesAAA}
-\end{figure}
-
-\begin{figure}[h!]
-    \centering
-    \includegraphics[width=.9\textwidth]{img/AAA/errors_ms_log30k.png}
-    \caption{
-        Maximum error of the rational approximation of scalar $\varphi$-functions
-        on the interval $[-\lambda, 0]$.
-        The approximations are done on the interval $[-10^4, -10^{-16}]$ with $30000$
-        logarithmically spaced interpolation points.
-    }
-    \label{fig:errorsAAAms}
-\end{figure}
-
-\begin{figure}[h!]
-    \centering
-    \includegraphics[width=.9\textwidth]{img/AAA/poles_ms_log_p03.png}
-    \caption{
-        Computed poles by the AAA algorithm for $\varphi_3$ with 20000 and 30000
-        logarithmically spaced interpolation points on the interval $[-10^{4}, -10^{-16}]$.
-    }
-    \label{fig:polesAAAms}
-\end{figure}
 
 \FloatBarrier
 
@@ -1120,7 +1120,7 @@ as they do in the first turn; and therefore, we see a major drop in the converge
 \texttt{RA-AAA15} and \texttt{RA-AAA30} converge before reaching the second turn, so this
 behaviour cannot be seen for these approximations.
 
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
     \includegraphics[width=.9\textwidth]{img/krylovapproximation/cnvg_poles_n1e04_p03.png}
     \caption{
@@ -1143,7 +1143,7 @@ To address this issue, the computation time of each method is presented in
 (bottom row) with different smallest eigenvalues and different sizes $n$.
 The reported computation time for each method corresponds to the minimum number of
 iterations ($m$, dimension of the Krylov subspace) required by the method to reach
-a relative error of $10^{-12}$ or smaller.
+a relative error of $10^{-10}$ or smaller.
 First of all, we can see that the computation time of the reference method (exponential of the
 embedded matrix), denoted by \texttt{EX}, increases when the matrix becomes larger and when
 its spectral interval becomes wider. Since the reference method implements an scaling and squaring
@@ -1160,12 +1160,12 @@ needing more iterations to converge.
 It should be noted that since the poles are pre-computed, the computation time of
 the poles by the AAA algorithm is not included in the reported CPU times.
 
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
     \includegraphics[width=.9\textwidth]{img/krylovapproximation/cputime_methods.png}
     \caption{
         CPU time for different evaluation methods. For the approximation methods,
-        the number of iterations required to reach a relative error less than $10^{-12}$
+        the number of iterations required to reach a relative error less than $10^{-10}$
         is considered. Shadows of each line represent the range of the CPU time for
         $\varphi_0$, $\varphi_1$, $\varphi_3$, and $\varphi_5$.
         \texttt{EX} represents the reference evaluation.
@@ -1178,12 +1178,14 @@ the poles by the AAA algorithm is not included in the reported CPU times.
 \subsection{Trigonometric Functions}
 \label{sec:resultstrigonometricfunctions}
 
-Using finite elements for solving the PDE corresponding to a 2D linear elasticity problem,
+Using finite elements for solving the PDE corresponding to a 2D linear elasticity problem
+on a unit square $\Omega$,
 \cite{voet2020linearelasticity} derives the following initial value problem
-\begin{equation*}
+\begin{equation}
+    \label{eq:elasticityequation}
     M \mathbf{\ddot{x}}(t) + K \mathbf{x}(t) = \mathbf{f}(t), \quad
     \mathbf{x}(0) = \mathbf{u'_0}, \; \mathbf{\dot{x}}(0) = \mathbf{v'_1},
-\end{equation*}
+\end{equation}
 where $M$ and $K$ are both symmetric positive definite matrices.
 Computing the Cholesky factorization of $M = LL^{\top}$, pre-multiplying the equation by $L^{-1}$,
 and a change of variables results in
@@ -1198,27 +1200,30 @@ where
         & \mathbf{u_0} = \mathbf{u'_0}, & \mathbf{v_0} = \mathbf{v'_0}. & &
     \end{aligned}
 \end{equation*}
-Approximating $\mathbf{g}(t) \simeq \mathbf{g}(0) = \mathbf{g_0}$, the solution to
+Assuming that $\mathbf{f}(t) = \mathbf{f_0}$ is constant in time, the solution to
 the problem satisfies
 \begin{equation}
     \label{eq:elasticitysolution}
     \mathbf{u}(t) = \cos(t\sqrt{A}) \mathbf{u_0}
     + t \mathrm{sinc}(t\sqrt{A}) \mathbf{v_0}
-    + \frac{t^2}{2} \mathrm{sinc}^2(\frac{t}{2} \sqrt{A}) \mathbf{g_0}.
+    + \frac{t^2}{2} \mathrm{sinc}^2(\frac{t}{2} \sqrt{A}) \mathbf{g_0},
 \end{equation}
+where $\mathbf{g_0} = L^{-1} \mathbf{f_0}$.
 
 In this subsection, we investigate the performance of the methods presented in \autoref{sec:methods}
 for approximating the three terms in \eqref{eq:elasticitysolution} with suitable time steps.
 
 \subsubsection*{Test Matrices}
 Since we are studying specific matrix functions for an specific problem, we will stick to the
-matrices that appear for this problem. The matrix $A$ in \eqref{eq:elasticitysolution} is
-calculated with the methods described in \cite{voet2020linearelasticity}:
-$A_{LE}^{0.04} \in \mathbb{R}^{888\times888}$.
-
-Unlike the test matrices in the previous subsection, this matrix is dense because
-it is obtained by multiplying a sparse matrix by $L^{-1}$ and $L^{-\top}$ from left and
-right. Nonetheless, it inherits the symmetry and the positive definiteness of $K$.
+matrices that appear for this problem.
+The matrices $M$ and $K$ in \eqref{eq:elasticityequation} are calculated using a finite element space
+of degree 1 on a triangulation of the unit square $\Omega$.
+The matrix $A_{LE}^{0.04} \in \mathbb{R}^{888\times888}$ is then formed by computing the Cholesky
+factorization of $M = LL^{\top}$ and multiplying $K$ by $L^{-1}$ and $L^{-\top}$ from left and right.
+This matrix inherits the symmetry and the positive definiteness of $K$ but unlike the test matrices
+in the previous subsection, it will be dense.
+However, it is possible to modify the Arnoldi method in order to avoid forming this matrix
+explicitly.
 The square root of this matrix (computed by \texttt{scipy.linalg.sqrtm}) is also symmetric
 positive definite, and its numerical range is:
 \begin{gather*}
@@ -1254,9 +1259,9 @@ at some point, the rational functions become powerful enough to capture the osci
 start decreasing. With a degree around $20$, the functions reach their full potential and there is no
 improvement afterwards. This \textit{minimum sufficient} degree is higher for bigger time steps.
 For $t = 2 \times 10^{-5}$, for instance, a rational function of degree at least $40$ is needed.
-Note reason that the starting absolute errors are very small is that the values of the functions
-$f(z)=t \mathrm{sinc}(tz)$ and $f(z)=\frac{t^2}{2} \mathrm{sinc}(\frac{t}{2}z)^2$ are small because
-of their leading coefficients.
+The reason that the starting absolute errors are small for the functions
+$f(z)=t \mathrm{sinc}(tz)$ and $f(z)=\frac{t^2}{2} \mathrm{sinc}(\frac{t}{2}z)^2$
+is that, because of their leading coefficients, their values are small.
 
 \FloatBarrier
 
@@ -1318,8 +1323,10 @@ reaches $k$.
     \includegraphics[width=.9\textwidth]{img/trigonometric/cnvg_h4e-02_methods_ts.png}
     \caption{
         Convergence of the approximations \eqref{eq:polynomialkrylovapproximation}
-        and \eqref{eq:rationalkrylovapproximation} for $A_{LE}^{0.04}$. Each column
-        shows plots for one function. Each row shows plots for one time step.
+        and \eqref{eq:rationalkrylovapproximation} with rational functions of type
+        $(m, m)$ for $A_{LE}^{0.04}$.
+        Each column shows plots for one function.
+        Each row shows plots for one time step.
         }
         \label{fig:trigonometricconvergences}
 \end{figure}
@@ -1349,8 +1356,8 @@ For the $\varphi$-functions, we focused on the interval $(-\infty, 0]$ and param
 the spectrum of the input matrix as $[-\lambda, 0]$ with $\lambda > 0$. We studied the
 convergence for different $\lambda$'s.
 In the context of exponential integrators, the spectrum of the input matrix usually
-depends on the time step and other parameters (e.g., mesh size, underlying PDE)
-that are out of hand.
+depends on parameters (e.g., mesh size) that cannot be changed and it is scaled by the
+time step of the exponential integrator.
 Therefore, we can translate our findings about the effect of the parameter $\lambda$ to
 the time step in exponential integrators.
 Here is a summary of the main findings of this work for the $\varphi$-functions:
@@ -1368,14 +1375,16 @@ Here is a summary of the main findings of this work for the $\varphi$-functions:
         the AAA algorithm.
         However, one needs to be careful to provide it with a sufficient number of poles
         since it might not converge with only a few poles, unless they are all real-valued.
-        The improvement of the method is a direct impact of the improvement of the scalar
-        approximations.
+        The performance of the method depends on the error of the scalar rational
+        approximation.
     \item Regarding the computation time for large sparse matrices, the polynomial
         approximation performs even slower than the baseline methods
         (scaling and squaring methods for $e^A$) when the time step is increased.
-        The rational Krylov subspace method with one or two repeated pole should always
-        be the method of choice. Despite taking more iterations to converge, it returns
-        in less time compared to using more poles, especially when the time step is bigger.
+        The rational Krylov subspace method with a few repeated poles should
+        be the method of choice.
+        When more poles are used, the method converges in fewer iterations but it will
+        need to do more LU factorizations in the beginning. The number of the poles can be
+        fine tuned depending on the settings of the problem.
 \end{itemize}
 
 For the trigonometric functions, we focused on the 2D linear elasticity problem.
@@ -1386,9 +1395,10 @@ Here is a summary of the main findings for the trigonometric functions:
         Krylov subspace is reached.
     \item The polynomial Krylov subspace method needs more iterations to converge
         when the time step is increased.
-    \item The convergence of the rational Krylov subspace method is delayed until
-        the subspace has been fed with all the poles from the AAA algorithm.
-        Also, when the dimension of the Krylov subspace surpasses the number of poles, repeating the poles or using infinity will not help for these functions.
+    \item The convergence of the rational Krylov subspace method is delayed at least
+        until the subspace has been fed with all the poles from the AAA algorithm.
+        Also, repeating the poles or using infinity poles afterwards does not help
+        the convergence.
 \end{itemize}
 
 For the rational approximations, we focused on the AAA algorithm for choosing the poles.
