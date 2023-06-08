@@ -54,7 +54,7 @@ when they are stiff. These methods treat the linear term of \eqref{eq:exponentia
 exactly and integrate the other term numerically. They are based on the premise that most of the
 stiffness of the problem originates from the matrix $A$, and not from the non-linear part. The matrix
 $A$ that appears in such problems is typically large and sparse. In several applications, this matrix
-is symmetric and positive semi-definite, which is the case we consider in this work.
+is symmetric and positive semi-definite, which is the case that is considered in this work.
 A presentation and review of these methods is given in \cite{minchev2005review}.
 A core step in these methods is the efficient computation of matrix-vector multiplications where
 the matrix is $\exp(tA)$ or $\varphi_p(tA)$ (to be defined later) for a suitable parameter $t$.
@@ -64,7 +64,7 @@ $\varphi$-functions on given vectors using Krylov subspace methods.
 In \autoref{sec:matrixfunctions}, basic definitions and properties of the matrix functions
 regarded in this work are given. In \autoref{sec:methods}, we present the theoretical ideas
 and the numerical methods. The definitions of polynomial and rational Krylov subspaces,
-the Arnoldi algorithm, the approximation methods, and the reference methods are presented.
+the Arnoldi process, the approximation methods, and the reference methods are presented.
 Furthermore, theoretical bounds for the error of the polynomial Krylov subspace approximation
 are derived in this section. In \autoref{sec:experiments}, we present the details of our
 implementations of the methods of \autoref{sec:methods} and the results of numerical experiments.
@@ -251,7 +251,7 @@ Some properties of the matrix sine and cosine follow:
 \section{Methodology}
 \label{sec:methods}
 
-\subsection{Krylov Subspaces and the Arnoldi Algorithm}\label{sec:arnoldi}
+\subsection{Krylov Subspaces and the Arnoldi Process}\label{sec:arnoldi}
 Given a matrix $A \in \mathbb{C}^{n \times n}$ and a vector $\mathbf{v} \neq 0 \in \mathbb{C}^n$,
 the Krylov subspace of dimension $m \leq n$ for them is defined \cite{golub2013matrix} as
 \begin{equation}
@@ -269,7 +269,7 @@ However, the vectors $\mathbf{v}, A\mathbf{v}, A^{2}\mathbf{v}, \dots, A^{m-1}\m
 are not a good basis for $\mathcal{K}_m(A, \mathbf{v})$. We know from the power method that
 these vectors have almost the same direction and converge to the eigenvector paired
 with the largest eigenvalue of $A$.
-From the Arnoldi algorithm \cite{trefethen1997numerical} described in Algorithm
+From the Arnoldi process \cite{trefethen1997numerical} described in Algorithm
 \ref{alg:polynomialarnoldi}, we can get an orthonormal basis for $\mathcal{K}_m(A, \mathbf{v})$
 and an upper Hessenberg matrix $H_m = V_m^* A V_m$ which is the projection of the action of
 $A$ on $\mathcal{K}_m(A, \mathbf{v})$. The Arnoldi factorization reads
@@ -280,12 +280,12 @@ $A$ on $\mathcal{K}_m(A, \mathbf{v})$. The Arnoldi factorization reads
 where $\mathbf{e_m}$ is the last canonical basis vector of $\mathbb{R}^{m}$.
 
 \begin{algorithm}[ht!]
-    \caption{Standard Arnoldi algorithm}
+    \caption{Standard Arnoldi process}
     \label{alg:polynomialarnoldi}
     \KwIn{
         Matrix $A \in \mathbb{C}^{n \times n}$
         \newline
-        Vector $\mathbf{v} \in \mathbb{C}^n \backslash \{0\}$ with $m \le n \in \mathbb{N}$
+        Vector $\mathbf{v} \in \mathbb{C}^n \backslash \{0\}$ with $n \ge m$
     }
     \KwOut{Orthonormal basis $V_m = (\mathbf{v_1}, \mathbf{v_2}, \dots, \mathbf{v_m})$ of $\mathcal{K}_m(A, \mathbf{v})$}
     Set $\mathbf{v_1} = \mathbf{v} / \left\| \mathbf{v} \right\|_2$\;
@@ -307,7 +307,7 @@ where $\mathbf{e_m}$ is the last canonical basis vector of $\mathbb{R}^{m}$.
 
 \begin{remark}
     Lines 7 to 11 of Algorithm \ref{alg:polynomialarnoldi} are necessary in order to avoid a
-    numerical instability that is well-known for the Arnoldi method.
+    numerical instability that is well-known for the Arnoldi process.
     If the vector $\mathbf{w} = A \mathbf{v_j}$ is nearly contained in the column
     space of $V_j$, the vectors $\mathbf{w}$ and $V_j \mathbf{h_j} = V_j V_j^* \mathbf{w}$
     will be very close to each other. Consequently, the computation of the vector
@@ -343,19 +343,19 @@ of $(I - A / \xi_j)$ outside of the main loop. These ideas are summarized in Alg
 \ref{alg:rationalarnoldi}.
 
 \begin{algorithm}[H]
-    \caption{Rational Arnoldi algorithm with k repeated poles}
+    \caption{Rational Arnoldi process}
     \label{alg:rationalarnoldi}
     \KwIn{
         Matrix $A \in \mathbb{C}^{n \times n}$
         \newline
-        Vector $\mathbf{v} \in \mathbb{C}^n \backslash \{0\}$ with $m \le n \in \mathbb{N}$,
+        Vector $\mathbf{v} \in \mathbb{C}^n \backslash \{0\}$ with $n \ge m$,
         \newline
         Poles $\xi_1, \xi_2, \dots, \xi_m$
     }
     \KwOut{Orthonormal basis $V_m = (\mathbf{v_1}, \mathbf{v_2}, \dots, \mathbf{v_m})$ of $\mathcal{Q}_m(A, \mathbf{v})$}
     \For{$j = 1, 2, \dots, m$}{
         \uIf{$\xi_j$ has been seen before}{
-            Retrieve $P_j$, $L_j$, and $U_j$ from previous iterations\;
+            Retrieve $P_j$, $L_j$, and $U_j$ from the previous iterations\;
         }
         \Else{
             Compute $P_j L_j U_j = (I - A / \xi_j)$\;
@@ -761,12 +761,12 @@ The goal is to choose the poles such that the rational Krylov subspace contains 
 of $f(z)$ in the set $\Sigma$.
 The AAA algorithm, introduced in \cite{nakatsukasa2018AAA}, takes advantage of the barycentric
 representation of rational functions and approximates a function by interpolating it at a number
-of nodes that are chosen among a large number of nodes given on a domain in the complex plane.
-At each iteration, they choose the next interpolation point by a greedy algorithm which picks
+of nodes that are chosen among the given nodes on a domain in the complex plane.
+At each iteration, it chooses the next interpolation point by a greedy algorithm which picks
 the point that has the maximum absolute residual on that iteration. The poles of the rational
 function can then be easily computed.
 One limitation of this algorithm is that since it works based on the interpolation points,
-it does not allow for directly putting constrains on the poles. However, for some functions,
+it does not allow for putting constrains on the poles directly. However, for some functions,
 it might be possible to constrain the poles indirectly by finding a mapping between the
 domain of the interpolation points and the domain of the resulting poles.
 
@@ -1042,7 +1042,7 @@ The relative error is computed as:
 The convergence plots for the polynomial (top) and the rational (bottom) Krylov subspace approximations are
 illustrated in \autoref{fig:krylovapproximationevaluation} for $A_1$ with size $n=10^{4}$.
 Comparing the top and the bottom plots, it could be concluded that the RA method needs
-much less iterations to converge.
+fewer iterations to converge.
 Another major difference is the impact of the parameter $\lambda$ (the smallest eigenvalue).
 With the polynomial Krylov subspace method, increasing $\lambda$ drastically slows down the convergence rate;
 whereas the rational Krylov subspace method converges more or less with the same rate for
@@ -1102,10 +1102,10 @@ compared to the other matrices.
 \autoref{fig:rationalkrylovpoleselection} compares the convergence of the
 rational Krylov subspace method with different number of poles for $\lambda=10^3$ (top)
 and $\lambda=10^5$ (bottom).
-As expected, the method converges in less iterations when it is provided with more poles.
-However, there is no improvement after $15$ poles as we can see that the plots of \texttt{RA-AAA30}
-and \texttt{RA-AAA15} overlap. This observation is consistent with what has been observed
-in \autoref{fig:errorsAAAms} for the scalar approximation errors.
+As expected, the method converges in fewer iterations when it is provided with more poles.
+However, there is no improvement with more than $15$ poles as we can see that the plots of
+\texttt{RA-AAA30} and \texttt{RA-AAA15} overlap. This observation is consistent with what
+has been observed in \autoref{fig:errorsAAAms} for the scalar approximation errors.
 From the scalar approximation errors, we also know that rational functions of degrees below
 $10$ cannot approximate the $\varphi$-functions well enough. This is a compelling reason
 for the failure of the methods \texttt{RA-AAA3}, \texttt{RA-AAA5}, and \texttt{RA-AAA7}.
@@ -1136,8 +1136,8 @@ the context of exponential integrators.
 However, these advantages come at a cost. In Algorithm \ref{alg:rationalarnoldi}, we need to
 solve a linear system $m$ times. In the case of repeated poles, the algorithm benefits from pre-computing
 the LU factorization of the corresponding matrices but it still needs to do the factorization
-once for each pole. Therefore, for some cases, it might be more efficient to do more iterations
-of the polynomial Krylov subspace method.
+once for each pole. Therefore, for some cases, it might be computationally more efficient to
+do more iterations of the polynomial Krylov subspace method.
 To address this issue, the computation time of each method is presented in
 \autoref{fig:krylovapproximationcputime} for the matrices $A_1$ (top row) and $A_2$
 (bottom row) with different smallest eigenvalues and different sizes $n$.
@@ -1155,7 +1155,7 @@ this method is not present because it does not converge even with 1000 iteration
 With the rational Krylov subspace method (denoted by \texttt{RA}), on the contrary,
 the approximations can be computed very fast even for large matrices with wide spectra.
 However, we can see that when more poles are provided, the method becomes slower even
-with less iterations. The \texttt{RA-AAA1} method is always the fastest one despite
+with fewer iterations. The \texttt{RA-AAA1} method is always the fastest one despite
 needing more iterations to converge.
 It should be noted that since the poles are pre-computed, the computation time of
 the poles by the AAA algorithm is not included in the reported CPU times.
@@ -1179,8 +1179,8 @@ the poles by the AAA algorithm is not included in the reported CPU times.
 \label{sec:resultstrigonometricfunctions}
 
 Using finite elements for solving the PDE corresponding to a 2D linear elasticity problem
-on a unit square $\Omega$,
-\cite{voet2020linearelasticity} derives the following initial value problem
+on a unit square $\Omega$, the following initial value problem is derived in
+\cite{voet2020linearelasticity}:
 \begin{equation}
     \label{eq:elasticityequation}
     M \mathbf{\ddot{x}}(t) + K \mathbf{x}(t) = \mathbf{f}(t), \quad
@@ -1222,7 +1222,7 @@ The matrix $A_{LE}^{0.04} \in \mathbb{R}^{888\times888}$ is then formed by compu
 factorization of $M = LL^{\top}$ and multiplying $K$ by $L^{-1}$ and $L^{-\top}$ from left and right.
 This matrix inherits the symmetry and the positive definiteness of $K$ but unlike the test matrices
 in the previous subsection, it will be dense.
-However, it is possible to modify the Arnoldi method in order to avoid forming this matrix
+However, it is possible to modify the Arnoldi process in order to avoid forming this matrix
 explicitly.
 The square root of this matrix (computed by \texttt{scipy.linalg.sqrtm}) is also symmetric
 positive definite, and its numerical range is:
@@ -1253,11 +1253,11 @@ distribution of the interpolation points are no longer valid for the trigonometr
 
 The absolute errors of the rational approximations of the scalar functions are presented in
 \autoref{fig:trigonometricAAAerrors}.
-For all three functions, the errors do not decrease when the degree of the rational function is too low.
+For all the three functions, the errors do not decrease when the degree of the rational function is too low.
 This behaviour lies on the oscillatory nature of the trigonometric functions. When the degree is increased,
 at some point, the rational functions become powerful enough to capture the oscillations and the errors
 start decreasing. With a degree around $20$, the functions reach their full potential and there is no
-improvement afterwards. This \textit{minimum sufficient} degree is higher for bigger time steps.
+improvement afterwards. This \textit{minimum sufficient degree} is higher for bigger time steps.
 For $t = 2 \times 10^{-5}$, for instance, a rational function of degree at least $40$ is needed.
 The reason that the starting absolute errors are small for the functions
 $f(z)=t \mathrm{sinc}(tz)$ and $f(z)=\frac{t^2}{2} \mathrm{sinc}(\frac{t}{2}z)^2$
@@ -1291,7 +1291,7 @@ $t=5 \times 10^{-6}$ (top) and $t=2 \times 10^{-5}$ (bottom).
 With the polynomial Krylov subspace approximation (PA), the error does not decrease when
 the dimension of the Krylov subspace is too low. This is similar to what has been
 observed in \autoref{fig:trigonometricAAAerrors} and it is again because of the
-oscillations of trigonometric functions.
+oscillations of the trigonometric functions.
 With the rational Krylov subspace approximations (RA), the performance is not satisfactory in general.
 The main reason is that when only a portion of the poles are provided (i.e., when $m < k$),
 the rational functions are not able to approximate the functions well. We can see that
@@ -1307,13 +1307,13 @@ The observations in the bottom row of \autoref{fig:trigonometricconvergences} gi
 idea that there might be some potential advantages in the RA method for bigger time steps,
 if the pole selection strategy is improved. In an attempt for improving the pole selection
 strategy, we did the same experiments by using the poles from the AAA algorithm only once
-and using $\xi_i = \infty$ for $i > k$. Since the rational Krylov subspace with infinity
+and using $\xi_j = \infty$ for $j > k$. Since the rational Krylov subspace with infinity
 poles is identical to the polynomial Krylov subspace, the idea here is to benefit from
 the poles in the first $k$ iterations and do the same as in polynomial Krylov subspace
 in the rest of the iterations. The resulting subspace will contain rational functions
-of the type $(m, k)$ when $k \le m$.
+of the type $(m, k)$ when $m \ge k$.
 \autoref{fig:trigonometricconvergences_mk} shows the relative errors for the time step
-$t = 2 \times 10^{-5}$. Although there are some improvements for the dimensions $m > k$,
+$t = 2 \times 10^{-5}$. Although there are some improvements when $m > k$
 especially for \texttt{RA-AAA20}, this strategy did not solve the main problem of the
 RA method. The convergence still loses momentum when the dimension of the subspace
 reaches $k$.
@@ -1353,7 +1353,7 @@ methods for approximating the action of $\varphi$-functions and trigonometric ma
 functions on a given vector for real symmetric matrices.
 
 For the $\varphi$-functions, we focused on the interval $(-\infty, 0]$ and parameterized
-the spectrum of the input matrix as $[-\lambda, 0]$ with $\lambda > 0$. We studied the
+the numerical range of the input matrix as $[-\lambda, 0]$ with $\lambda > 0$. We studied the
 convergence for different $\lambda$'s.
 In the context of exponential integrators, the spectrum of the input matrix usually
 depends on parameters (e.g., mesh size) that cannot be changed and it is scaled by the
@@ -1369,8 +1369,8 @@ Here is a summary of the main findings of this work for the $\varphi$-functions:
         large interval and be used for all time steps.
     \item The rational Krylov subspace method needs fewer iterations to converge.
         Furthermore, contrary to the polynomial Krylov subspace method, it allows for
-        larger time steps without increasing the number of iterations
-        (dimension of the Krylov subspace).
+        larger time steps without increasing the number of the iterations
+        (i.e., the dimension of the Krylov subspace).
     \item The rational Krylov subspace method benefits from poles that are returned by
         the AAA algorithm.
         However, one needs to be careful to provide it with a sufficient number of poles
@@ -1403,8 +1403,9 @@ Here is a summary of the main findings for the trigonometric functions:
 
 For the rational approximations, we focused on the AAA algorithm for choosing the poles.
 Since this algorithm is based on interpolating the scalar function on a set of given
-points, it has the disadvantage that it does not allow for restricting the poles. For example, in the case of the $\varphi$-functions, restricting the poles to real positive values
-or far from the negative real axis might be of interest.
+points, it has the disadvantage that it does not allow for putting constrains on the poles.
+For example, in the case of the $\varphi$-functions, restricting the poles to real positive
+values or being far from the negative real axis might be of interest.
 We saw in \autoref{fig:rationalkrylovpoleselection} that the method converges even with
 only a few repeated poles (\texttt{RA-AAA1} and \texttt{RA-AAA2}), provided that the poles
 are real. However, it might not converge if some of the poles are complex.
